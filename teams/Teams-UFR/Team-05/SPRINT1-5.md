@@ -35,11 +35,11 @@ Nesta Sprint 1/5, o foco é exclusivamente o **planejamento do banco de dados**.
 
 **Nome completo:**
 
-> Preencha aqui.
+> NICOLAS LINO OLIVEIRA
 
 **Nome escolhido para o banco de dados:**
 
-```text
+``` IA DE CORRETORES DE IMÓVEIS
 
 ```
 
@@ -73,7 +73,7 @@ Alguns exemplos:
 
 ### Tema escolhido
 
-> Escreva aqui.
+> CORRETORES DE IMÓVEIS
 
 ---
 
@@ -90,7 +90,15 @@ A descrição deve responder:
 
 ### Descrição
 
-> Escreva aqui.
+>  1. O contexto é a gestão de uma imobiliária, normalmente, se utiliza de uma forma manual como planilhas ou WhatsApp, com o sistema vou deixar ele mais automático
+>  2. Gestores de uma imobiliária
+>  3. Imóveis, Clientes, Corretores, Visitas, Propostas, Gestões
+>  4. Cadastrar, editar e remover imóveis, clientes e corretores
+Agendar, remarcar e cancelar visitas
+Registrar propostas e atualizar seu status
+Fechar contratos vinculando cliente + imóvel + corretor
+Consultar imóveis por filtros (preço, bairro, tipo, status)
+Gerar relatórios: histórico de visitas por cliente, comissões por corretor, imóveis vendidos vs. disponíveis. Me explique cada um deles
 
 ---
 
@@ -100,7 +108,7 @@ Explique qual é o principal objetivo do banco de dados proposto.
 
 ### Objetivo
 
-> Escreva aqui.
+> Organizar uma imobiliária de forma digital e moderna
 
 ---
 
