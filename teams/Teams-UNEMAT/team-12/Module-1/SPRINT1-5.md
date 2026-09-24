@@ -35,13 +35,11 @@ Nesta Sprint 1/5, o foco é exclusivamente o **planejamento do banco de dados**.
 
 **Nome completo:**
 
-> Vinícius Eduardo Lima de Assis.
+> João Guilherme Barros de Lima.
 
 **Nome escolhido para o banco de dados:**
 
-```text
-pacote_viagens
-```
+```Real-states-database```
 
 ---
 
@@ -73,7 +71,7 @@ Alguns exemplos:
 
 ### Tema escolhido
 
-> Viagens.
+> Site de anúncios imobiliários.
 
 ---
 
@@ -90,8 +88,10 @@ A descrição deve responder:
 
 ### Descrição
 
-> O sistema de banco de dados de pacotes de viagens representa o contexto de organização e gestão de ofertas turísticas, solucionando o problema de centralizar informações sobre destinos, preços e serviços. Ele será utilizado por agências de turismo, que cadastrarão e administrarão os pacotes, e por clientes interessados em consultar e reservar viagens. As principais informações armazenadas serão destinos, preços, hospedagens, transportes e dados de clientes cadastrados. O sistema permitirá operações como cadastro de pacotes, consulta, reservas, atualização de informações e emissão de relatórios.
-
+> Esse é um sistema de anúncios de imóveis que será utilizado por corretores que queiram anunciar seu imóvel de forma fácil e rápida e por pessoas que estejam procurando imoveis para alugar ou comprar.
+> O sistema será como um cardápio de imóveis sendo anunciados na pagina principal. Esse sistema contaram com informações como: titulo, valor, localização, quantidade de cômodos, imagens e um cadastro único e distinto de corretor e cliente armazenados em um banco de dados feito pelo MySQL.
+> O sistema permitirá realizar um cadastro autenticado por e-mail. 
+>
 ---
 
 # 4. Objetivo do banco de dados
@@ -100,7 +100,7 @@ Explique qual é o principal objetivo do banco de dados proposto.
 
 ### Objetivo
 
->  O objetivo é centralizar e organizar todas as informações relacionadas às ofertas turísticas, garantindo que agências possam gerenciar seus pacotes de forma eficiente e que clientes tenham acesso rápido e confiável para consultar e reservar viagens e/ou hospedagens.
+> Armazenar os dados dos imoveis, corretores e clientes de forma segura.
 
 ---
 
@@ -112,12 +112,11 @@ Liste as principais funcionalidades ou informações que deverão ser contemplad
 
 ### O banco deverá permitir:
 
-1. Cadastro de pacotes
-2. Hospedagens
-3. Destinos
-4. Transportes
-5. Reservas
-6. Dados do Cliente
+1. Cadastrar, alterar e excluir perfis de corretores e clientes.
+2. Cadastrar imóveis com seus respectivos detalhes (valor, cômodos, localização).
+3. Associar cada imóvel cadastrado a um corretor responsável.
+4. Permitir que clientes demosntrem interesse/agendem uma visita para um imóvel específico.
+5. Listar todos os imóveis disponíveis no "cardápio" principal.
 
 ---
 
@@ -151,11 +150,12 @@ Pagamento
 
 | Nº | Entidade | O que representa? |
 |---:|---|---|
-| 1 | Cliente | dados pessoais do usuário |
-| 2 | Destino  | dados do local |
-| 3 | Hospedagem | dados das acomodações |
-| 4 | Transporte | meio de deslocamento |
-
+| 1 | imovel | Representa o anúncio em si, contendo as características do local (valor, cômodos, localização). |
+| 2 | cliente | Armazena os dados dos usuários comuns que acessarão o sistema para buscar imóveis. |
+| 3 | corretor | Armazena os dados dos profissionais que criarão e gerenciarão os anúncios. |
+| 4 | interesse | Representa a intenção de visita, ligando o cliente interessado ao imóvel anunciado. |
+| 5 |  |  |
+| 6 |  |  |
 
 > Como referência para esta atividade, planeje **pelo menos 4 tabelas relacionadas**.
 
@@ -169,67 +169,65 @@ Para cada entidade, identifique os principais atributos que deverão ser armazen
 
 **Nome da entidade:**
 
-```text
-Cliente
+```
+Imovel
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_cliente | Identificação única do cliente | INT | Sim |
-| nome | Nome completo do cliente | VARCHAR(100) | Sim |
-| cpf | CPF do cliente | VARCHAR(14) | Sim |
-| email | E-mail do cliente | VARCHAR(100) | Sim |
-| telefone | Número de telefone do cliente | VARCHAR(20) | Não |
+| id_imovel | identificador único do anúncio | int | sim |
+| id_corretor | identificador de qual corretor é o dono do anúncio | int | sim |
+| titulo | chamada do anúncio (ex: "Casa com 3 quartos") | varchar | sim |
+| valor | preço do imóvel para venda ou aluguel | decimal | sim |
+| qunatidade_comodos | número total de cômodos do imóvel | int | sim |
 
 ## Entidade 2
 
 **Nome da entidade:**
 
-```text
-Destino
+```
+Cliente
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_destino | Identificação única do destino | INT | Sim |
-| nome | Nome da cidade ou local | VARCHAR(100) | Sim |
-| pais | País onde o destino está localizado | VARCHAR(60) | Sim |
-| estado | Estado ou região do destino | VARCHAR(60) | Não |
-| descricao | Descrição do destino | TEXT | Não |
+| id_cliente | Identificador único do cliente | int | sim |
+| nome | Nome completo do cliente | varchar | sim |
+| email | E-mail usado no cadastro e login | varchar | sim |
+| senha | Senha de acesso ao sistema | varchar | sim |
+| telefone | Número de contato do cliente | varchar | sim |
 
 ## Entidade 3
 
 **Nome da entidade:**
 
-```text
-Hospedagem
+```
+Corretor
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_hospedagem |Identificação única da hospedagem  | INT | Sim |
-| nome | Nome do hotel ou acomodação | VARCHAR(100) | Sim |
-| endereco | Endereço da hospedagem | VARCHAR(200) | Sim |
-| tipo | Tipo de acomodação | VARCHAR(50) | Sim |
-| valor_diaria | Valor da diária | DECIMAL(10,2) | Sim |
+| id_corretor | Identificador único do corretor | int | sim |
+| nome | Nome completo do corretor | varchar | sim |
+| creci | Número de registro do corretor (documento) | varchar | sim |
+| email | E-mail para acesso ao sistema | varchar | sim |
+| telefone | Número de contato celular/WhatsApp | varchar | sim |
 
 ## Entidade 4
 
 **Nome da entidade:**
 
-```text
-Transporte
+```
+Agendamento
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_transporte | Identificação única do transporte | INT | Sim |
-| tipo | Tipo de transporte utilizado | VARCHAR(50) | Sim |
-| empresa | Nome da empresa de transporte | VARCHAR(100) | Sim |
-| origem | Local de partida | VARCHAR(100) | Sim |
-| destino | Local de chegada | VARCHAR(100) | Sim |
-
-
+| id_agendamento | Identificador único da visita | int | sim |
+| id_cliente | Identificador de qual cliente quer visitar | int | sim |
+| id_imovel | Identificador de qual imóvel será visitado | int | sim |
+| data_visita | Dia e horário marcados para a visita | datetime | sim |
+| status | Situação do agendamento (ex: Pendente, Confirmado) | varchar | sim |
 
 ## Outras entidades
 
@@ -249,10 +247,10 @@ Cada tabela deverá possuir uma forma de identificar unicamente seus registros.
 
 | Entidade/Tabela | Chave primária prevista | Justificativa |
 |---|---|---|
-| Cliente | id_cliente | Identifica cada cliente de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Destino | id_destino | Identifica cada destino de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Hospedagem | id_hospedagem | Identifica cada hospedagem de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Transporte | id_transporte | Identifica cada transporte de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
+| Corretor | id_corretor | Valor numérico único que identifica cada corretor. Não se repete e usará AUTO_INCREMENT. |
+| Cliente | id_cliente | Valor numérico único que identifica cada cliente. Não se repete e usará AUTO_INCREMENT. |
+| Imovel | id_imovel | Valor numérico único que identifica cada imóvel. Não se repete e usará AUTO_INCREMENT. |
+| Agendamento | id_agendamento | Valor numérico único que identifica cada visita agendada. Não se repete e usará AUTO_INCREMENT. |
 
 Considere:
 
@@ -279,11 +277,11 @@ Produto aparece em Item_Pedido
 
 | Entidade A | Relacionamento | Entidade B |
 |---|---|---|
-| Cliente | escolhe | Destino |
-| Cliente | reserva | Hospedagem |
-| Cliente | utiliza | Transporte |
-| Destino | possui | Hospedagem |
-| Destino | utiliza | Transporte |
+| Corretor | anuncia / é responsável por | Imovel |
+| Cliente | realiza | Agendamento |
+| Imovel | recebe | Agendamento |
+|  |  |  |
+|  |  |  |
 
 ---
 
@@ -299,10 +297,10 @@ N:N  → muitos para muitos
 
 | Relacionamento | Cardinalidade prevista | Justificativa |
 |---|---|---|
-| Cliente escolhe Destino | N:N | Um cliente pode escolher vários destinos, e um mesmo destino pode ser escolhido por vários clientes |
-| Cliente reserva Hospedagem | N:N | Um cliente pode reservar várias hospedagens, e uma hospedagem pode receber reservas de vários clientes |
-| Cliente utiliza Transporte | N:N | Um cliente pode utilizar diferentes transportes, e um transporte pode ser utilizado por vários clientes |
-| Destino possui Hospedagem | 1:N | Um destino pode possuir várias hospedagens, mas cada hospedagem está localizada em um único destino |
+| Corretor - Imovel | 1:N | Um corretor pode anunciar vários imóveis, mas cada imóvel é de responsabilidade de apenas um corretor. | 
+| Cliente - Agendamento | 1:N | Um cliente pode marcar várias visitas (agendamentos), mas um agendamento específico pertence a um único cliente. |
+| Imovel - Agendamento | 1:N | Um imóvel pode ter várias visitas agendadas (em dias/horários diferentes), mas cada agendamento é referente a apenas um imóvel. |
+|  |  |  |
 
 ---
 
@@ -310,10 +308,10 @@ N:N  → muitos para muitos
 
 | Tabela | Atributo previsto como FK | Referencia qual tabela? |
 |---|---|---|
-| Hospedagem | id_destino | Destino |
-| Cliente | id_destino | Destino |
-| Cliente | id_hospedagem | Hospedagem |
-| Cliente | id_transporte | Transporte |
+| Imovel | id_corretor | Corretor |
+| Agendamento | id_cliente | Cliente |
+| Agendamento | id_imovel | Imovel |
+|  |  |  |
 
 > As `FOREIGN KEY` serão implementadas posteriormente. Nesta Sprint, apenas planeje os relacionamentos.
 
@@ -334,15 +332,11 @@ AUTO_INCREMENT
 
 | Tabela | Atributo | Restrição prevista | Motivo |
 |---|---|---|---|
-| Cliente | id_cliente | PRIMARY KEY, AUTO_INCREMENT | Identificar cada cliente de forma única e gerar o código automaticamente |
-| Cliente | cpf | NOT NULL, UNIQUE | O CPF é obrigatório e não pode pertencer a mais de um cliente |
-| Cliente | email | NOT NULL, UNIQUE | O e-mail é obrigatório e deve ser único para cada cliente |
-| Destino | id_destino | PRIMARY KEY, AUTO_INCREMENT | Identificar cada destino de forma única e gerar o código automaticamente |
-| Destino | nome | NOT NULL | O nome do destino é uma informação obrigatória |
-| Hospedagem | id_hospedagem | PRIMARY KEY, AUTO_INCREMENT | Identificar cada hospedagem de forma única e gerar o código automaticamente |
-| Hospedagem | valor_diaria | NOT NULL | O valor da diária é necessário para registrar o preço da hospedagem |
-| Transporte | id_transporte | PRIMARY KEY, AUTO_INCREMENT | Identificar cada transporte de forma única e gerar o código automaticamente |
-| Transporte | tipo | NOT NULL | O tipo de transporte é necessário para identificar o serviço utilizado |
+| Corretor | email | UNIQUE | Não permitir dois corretores com o mesmo e-mail |
+| Cliente | id_cliente | PRIMARY KEY | Identificar o cliente de forma única no sistema| 
+| Imovel | valor| NOT NULL | Não permitir cadastro de imóvel sem um preço |
+| Agendamento | status| DEFAULT | Preencher automaticamente o status como pendente |
+| Imóvel | id_corretor | FOREIGN KEY | Garantir que o imóvel pertença a um corretor |
 
 ---
 
@@ -362,11 +356,11 @@ Um empréstimo deve possuir uma data de realização.
 
 ### Regras do seu banco
 
-1. Um cliente não pode possuir dois cadastros com o mesmo CPF.
-2. Um cliente não pode possuir dois cadastros com o mesmo e-mail.
-3. Uma hospedagem deve estar associada a um destino existente.
-4. O valor da diária de uma hospedagem deve ser maior que zero.
-5. Todo transporte cadastrado deve possuir uma empresa, uma origem e um destino informados.
+1. Um cliente não pode possuir dois cadastros utilizando o mesmo endereço de e-mail.
+2. Um corretor não pode se cadastrar no sistema utilizando um número de CRECI já existente.
+3. O valor cadastrado para um imóvel não pode ser negativo nem igual a zero.
+4. Um agendamento deve estar obrigatoriamente associado a um cliente existente e a um imóvel existente.
+5. Um imóvel não pode ser cadastrado sem ter um corretor responsável associado a ele.
 
 ---
 
@@ -393,40 +387,38 @@ CLIENTE 1 ───── N PEDIDO
 ### Esboço do seu banco
 
 ```text
+CORRETOR
+├── id_corretor (PK)
+├── nome
+├── creci
+├── email
+└── telefone
+
 CLIENTE
 ├── id_cliente (PK)
 ├── nome
-├── cpf (UNIQUE)
-├── email (UNIQUE)
+├── email
+├── senha
 └── telefone
 
-DESTINO
-├── id_destino (PK)
-├── nome
-├── pais
-├── estado
-└── descricao
+IMOVEL
+├── id_imovel (PK)
+├── id_corretor (FK)
+├── titulo
+├── valor
+├── quantidade_comodos
+└── cidade
 
-HOSPEDAGEM
-├── id_hospedagem (PK)
-├── nome
-├── endereco
-├── tipo
-├── valor_diaria
-└── id_destino (FK)
+AGENDAMENTO
+├── id_agendamento (PK)
+├── id_cliente (FK)
+├── id_imovel (FK)
+├── data_visita
+└── status
 
-TRANSPORTE
-├── id_transporte (PK)
-├── tipo
-├── empresa
-├── origem
-└── destino
-
-
-CLIENTE N ───── N DESTINO
-CLIENTE N ───── N HOSPEDAGEM
-CLIENTE N ───── N TRANSPORTE
-DESTINO 1 ───── N HOSPEDAGEM
+CORRETOR 1 ───── N IMOVEL
+CLIENTE 1 ───── N AGENDAMENTO
+IMOVEL 1 ───── N AGENDAMENTO
 ```
 
 ---
@@ -435,10 +427,10 @@ DESTINO 1 ───── N HOSPEDAGEM
 
 Descreva que tipos de registros deverão existir no banco quando ele for populado.
 
-1. Dados de clientes, como nome, CPF, e-mail e telefone.
-2. Dados de destinos turísticos, como cidade, país, estado e descrição.
-3. Dados de hospedagens, como nome do hotel ou acomodação, endereço, tipo e valor da diária.
-4. Dados de transportes, como tipo de transporte, empresa, origem e destino.
+1. Registros de corretores reais com nome, contato e número de CRECI.
+2. Registros de clientes interessados em alugar ou comprar imóveis.
+3. Cadastros de imóveis disponíveis (casas, apartamentos, terrenos) com seus respectivos valores e descrições.
+4. Histórico de visitas agendadas, contendo a data, hora e a situação da visita (Pendente, Confirmado, Cancelado).
 
 ---
 
@@ -458,19 +450,19 @@ Quais categorias possuem mais de 5 produtos?
 
 ### Perguntas do seu projeto
 
-1. Quais clientes estão cadastrados no sistema?
-2. Quais destinos turísticos estão cadastrados e em quais países estão localizados?
-3. Quais hospedagens estão disponíveis em cada destino?
-4. Quais são os valores das diárias das hospedagens cadastradas?
-5. Quais empresas e tipos de transporte estão cadastrados?
+1. Quais imóveis estão cadastrados na cidade de Rondonópolis?
+2. Quais imóveis custam menos de R$ 300.000,00?
+3. Quantos agendamentos estão marcados para a próxima semana?
+4. Quantos imóveis temos anunciados?
+5. Quais clientes agendaram visitas para o imóvel de ID 50?
 
 ---
 
 # 17. Decisões e dúvidas pendentes
 
-- Nenhuma dúvida pendente nesta Sprint.
-- Nenhuma dúvida pendente nesta Sprint.
-- Nenhuma dúvida pendente nesta Sprint.
+- 
+- 
+- 
 
 Caso não existam dúvidas:
 
@@ -480,24 +472,24 @@ Caso não existam dúvidas:
 
 # 18. Checklist da Sprint 1/5
 
-- [x] identifiquei o aluno responsável;
-- [x] defini o tema do banco de dados;
-- [x] descrevi o sistema;
-- [x] defini o objetivo do banco;
-- [x] defini o escopo inicial;
-- [x] identifiquei pelo menos 4 entidades;
-- [x] planejei os principais atributos;
-- [x] defini as chaves primárias previstas;
-- [x] identifiquei os relacionamentos;
-- [x] defini as cardinalidades iniciais;
-- [x] identifiquei possíveis chaves estrangeiras;
-- [x] planejei restrições de integridade;
-- [x] defini pelo menos 5 regras de negócio;
-- [x] fiz um esboço da estrutura do banco;
-- [x] defini os tipos de dados que futuramente serão cadastrados;
-- [x] defini pelo menos 5 perguntas que o banco deverá responder;
-- [x] registrei dúvidas ou decisões pendentes;
-- [x] revisei o arquivo antes de finalizar.
+- [ ] identifiquei o aluno responsável;
+- [ ] defini o tema do banco de dados;
+- [ ] descrevi o sistema;
+- [ ] defini o objetivo do banco;
+- [ ] defini o escopo inicial;
+- [ ] identifiquei pelo menos 4 entidades;
+- [ ] planejei os principais atributos;
+- [ ] defini as chaves primárias previstas;
+- [ ] identifiquei os relacionamentos;
+- [ ] defini as cardinalidades iniciais;
+- [ ] identifiquei possíveis chaves estrangeiras;
+- [ ] planejei restrições de integridade;
+- [ ] defini pelo menos 5 regras de negócio;
+- [ ] fiz um esboço da estrutura do banco;
+- [ ] defini os tipos de dados que futuramente serão cadastrados;
+- [ ] defini pelo menos 5 perguntas que o banco deverá responder;
+- [ ] registrei dúvidas ou decisões pendentes;
+- [ ] revisei o arquivo antes de finalizar.
 
 ---
 

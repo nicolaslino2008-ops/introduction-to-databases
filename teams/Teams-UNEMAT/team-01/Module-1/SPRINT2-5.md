@@ -59,6 +59,10 @@ A Sprint 2/5 deve ser uma implementação do que foi planejado anteriormente.
 
 Caso seja necessário alterar alguma decisão da Sprint 1/5, isso é permitido, mas a mudança deverá ser registrada neste arquivo.
 
+--text
+Em relação à Sprint 1/5, ajustou-se a tabela associativa item_watchlist para utilizar diretamente uma chave primária composta (id_usuario, id_serie), dispensando o identificador surrogate id_item.
+--
+
 ---
 
 # 2. Passo a passo no MySQL Workbench
@@ -132,9 +136,10 @@ USE loja_virtual;
 ## Código utilizado no seu projeto
 
 ```sql
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+-- Copie aqui o código utilizado.
+CREATE DATABASE IF NOT EXISTS series_watchlist_db;
 
-USE gerenciamento_incidentes;
+USE series_watchlist_db;
 
 ```
 
@@ -142,7 +147,7 @@ USE gerenciamento_incidentes;
 
 ```text
 
-gerenciamento_incidentes;
+series_watchlist_db
 
 ```
 
@@ -177,6 +182,7 @@ preco DECIMAL(10,2)
 ativo BOOLEAN
 descricao TEXT
 ```
+
 
 ## Atenção
 
@@ -214,12 +220,11 @@ CREATE TABLE nome_tabela (
 
 | Nº | Nome da tabela | Finalidade |
 |---:|---|---|
-| 1 | analistas  | Armazena os profissionais responsáveis pelos incidentes |
-| 2 | dispositivos  | Armazena computadores, servidores e equipamentos monitorados |
-| 3 | tipos_ameacas | Armazena as classificações de ameaças |
-| 4 | alertas | Armazena os alertas de segurança gerados pelos dispositivos |
-| 5 | incidentes | Armazena os incidentes de segurança identificados |
-| 6 | acoes_resposta | Armazena as ações realizadas durante o tratamento de um incidente |
+| 1 | PLATAFORMAS | Armazena os serviços de streaming onde as séries são exibidas. |
+| 2 | USUÁRIO | Armazena os dados cadastrais das pessoas que possuem uma lista de séries. |
+| 3 | SERIE | Catálogo de produções disponíveis com gênero, ano e plataforma vinculada. |
+| 4 | ITEM_WATCHLIST | Tabela associativa (N:N) que conecta o usuário às séries, registrando status de exibição, notas e resenhas. |
+
 
 ---
 
@@ -250,12 +255,11 @@ Se `PEDIDO` possui uma FK para `CLIENTE`, então `CLIENTE` deve existir antes de
 
 ## Ordem definida para o seu projeto
 
-1. analistas (independente)
-2. dispositivos (independente)
-3. tipos_ameacas (independente)
-4. alertas (depende de dispositivos)
-5. incidentes (depende de analistas, dispositivos, tipos_ameacas e alertas)
-6. acoes_resposta (depende de incidentes)
+1. PLATAFORMA
+2. USUÁRIO
+3. SERIE
+4. ITEM_WATCHLIST (tabela associativa N:N entre usuario e serie)
+
 
 ---
 
@@ -279,12 +283,10 @@ id_cliente INT PRIMARY KEY AUTO_INCREMENT
 
 | Tabela | Chave primária | Utiliza `AUTO_INCREMENT`? |
 |---|---|---|
-|analistas  | id_analista | Sim |
-| dispositivos | id_dispositivo | Sim |
-| tipos_ameacas | id_ameaca | Sim |
-| alertas | id_alerta | Sim |
-| incidentes | id_incidente | Sim |
-| acoes_resposta | id_acao | Sim |
+| PLATAFORMA| Id_plataforma | Sim |
+| USUARIO | Id_usuario | Sim |
+| SERIE | Id_serie | Sim |
+| ITEM_WATCHLIST | (id_usuario, id_serie)| Não (chave composta)|
 
 ---
 
@@ -304,11 +306,10 @@ Não utilize `NOT NULL` indiscriminadamente. A restrição deve refletir uma reg
 
 | Tabela | Campo | Por que é obrigatório? |
 |---|---|---|
-| analistas | nome, email | Todo analista precisa ser identificável e contatável |
-| dispositivos | nome_dispositivo, tipo_dispositivo, ip_address | São necessários para identificar o equipamento monitorado |
-| incidentes | titulo, descricao, severidade, status | Definidos como obrigatórios pela regra de negócio 1 da Sprint 1/5 |
-| alertas |titulo, status  | Todo alerta precisa ter um identificador textual e uma situação|
-| acoes_resposta  | descricao, id_incidente | Toda ação precisa de uma descrição e estar vinculada a um incidente |
+|PLATAFORMA  | Nome_plataforma | Uma plataforma não pode existir sem identificação textual. |
+| USUARIO | nome, email, data_cadastro | Dados cadastrais essenciais para identificar a conta e o momento de entrada. |
+| SERIE | titulo, genero, ano_lancamento, id_plataforma | Garantem a consistência mínima do catálogo e a associação a um streaming.  |
+| ITEM_WATCHLIST | id_usuario, id_serie, status_assistindo | É mandatório saber quem favoritou, qual série e qual o estado atual de visualização. |
 
 ---
 
@@ -332,8 +333,10 @@ cpf CHAR(11) NOT NULL UNIQUE
 
 | Tabela | Campo | Por que não pode se repetir? |
 |---|---|---|
-| analistas | email | Evita analistas duplicados com o mesmo e-mail |
-| dispositivos | ip_address | Evita dispositivos duplicados com o mesmo IP  |
+| USUARIO | email | Impede vários cadastros com a mesma conta de e-mail. |
+| PLATAFORMA | nome_plataforma | Evita duplicidade de cadastro para a mesma plataforma de streaming. |
+| ITEM_WATCHLIST | (id_usuario, id_serie) | Garante que um usuário só adicione uma mesma série uma única vez à sua lista. |
+
 
 Caso nenhuma seja necessária, justifique:
 
@@ -361,14 +364,8 @@ status VARCHAR(20) NOT NULL DEFAULT 'ATIVO'
 
 | Tabela | Campo | DEFAULT | Justificativa |
 |---|---|---|---|
-| dispositivos | ativo | TRUE | Um dispositivo cadastrado é considerado ativo até que se informe o contrário |
-| alertas | status | ABERTO |  Todo alerta recém-gerado começa como aberto|
-| alertas | data_alerta | 'ABERTO' | Registra automaticamente o momento em que o alerta foi criado |
-| incidentes | status | 'ABERTO' | Reflete a regra de negócio 2 da Sprint 1/5 (status inicial do incidente) |
-| incidentes | data_identificacao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que o incidente foi identificado |
-| acoes_resposta | data_acao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que a ação foi executada |
-
-
+| ITEM_WATCHLIST | status_assistindo | Quero Ver | Caso o usuário salve uma série sem definir o status, o sistema assume que ele pretende assisti-la. |
+| SERIE | pais_origem | 'EUA' | Valor padrão adicionado via ALTER TABLE para nacionalidade da produção quando não informada. |
 
 Caso não utilize `DEFAULT`, justifique:
 
@@ -421,13 +418,9 @@ Verifique se:
 
 | Tabela | Campo FK | Referencia | Relacionamento |
 |---|---|---|---|
-| alertas | id_dispositivo | dispositivos | Um dispositivo pode gerar vários alertas |
-| incidentes | id_analista | analistas | Um analista pode acompanhar vários incidentes |
-|incidentes  | id_dispositivo | dispositivos | Um dispositivo pode estar relacionado a vários incidentes |
-|incidentes  | id_ameaca | tipos_ameacas | Um tipo de ameaça pode classificar vários incidentes |
-| incidentes | id_alerta | alertas | Um alerta pode dar origem a um incidente |
-| acoes_resposta | id_incidente |incidentes  | Um incidente pode possuir várias ações de resposta |
-
+| SERIE | id_plataforma | PLATAFORMA (id_plataforma) | 1:N |
+| ITEM_WATCHLIST | id_usuario | USUARIO (id_usuario) |  1:N|
+| ITEM_WATCHLIST | id_serie | SERIE (id_serie) | 1:N |
 
 ---
 
@@ -476,12 +469,13 @@ CREATE TABLE tabela_associativa (
 
 ## Seu banco possui relacionamento N:N?
 
-- [ ] Sim
-- [ x ] Não
+- [x] Sim
+- [ ] Não
 
 Se sim, explique como foi implementado:
 
-> Todos os relacionamentos planejados na Sprint 1/5 são do tipo 1:N, portanto não foi necessária nenhuma tabela associativa.
+> O relacionamento N:N ocorre entre **usuario** e **serie**: um usuário pode ter várias séries na sua lista, e uma série pode estar na lista de vários usuários.
+> Para resolver isso, foi criada a tabela associativa **item_watchlist**, que liga as duas tabelas usando os campos `id_usuario` e `id_serie` juntos como chave primária (`PRIMARY KEY (id_usuario, id_serie)`). Isso conecta os dois lados e impede que a mesma série seja adicionada duas vezes pelo mesmo usuário.
 
 ---
 
@@ -515,14 +509,14 @@ ADD CONSTRAINT uq_nome UNIQUE (novo_campo);
 ## ALTER TABLE utilizado no projeto
 
 ```sql
--- ALTER TABLE incidentes
--- ADD COLUMN observacoes TEXT;
-
+-- 
+ALTER TABLE serie
+ADD COLUMN pais_origem VARCHAR(50) NULL DEFAULT 'EUA';
 ```
 
 ### Explique a alteração
 
-> Foi adicionado o campo observacoes à tabela incidentes para permitir o registro de anotações livres do analista sobre o andamento do caso — informação que não havia sido prevista na Sprint 1/5, mas que se mostrou útil durante a implementação.
+> Adiciona a coluna pais_origem à tabela serie para permitir o registro da nacionalidade da produção, com valor padrão 'EUA'.
 
 ---
 
@@ -547,12 +541,13 @@ DROP TABLE tabela_teste;
 ## Código executado
 
 ```sql
--- CREATE TABLE tabela_teste (
---    id_teste INT PRIMARY KEY
---);
+-- Cole aqui o teste realizado.
+CREATE TABLE tabela_teste (
+    id_teste INT PRIMARY KEY AUTO_INCREMENT,
+    descricao VARCHAR(50)
+);
 
---DROP TABLE tabela_teste;
-
+DROP TABLE tabela_teste;
 ```
 
 ## Explique a diferença
@@ -569,7 +564,7 @@ e:
 DROP TABLE tabela;
 ```
 
-> DELETE FROM tabela; remove apenas os registros (linhas) armazenados na tabela, mas mantém a estrutura (colunas, chaves, restrições) intacta, a tabela continua existindo, apenas vazia. Já DROP TABLE tabela; remove a tabela inteira, incluindo sua estrutura, dados e restrições; depois desse comando, a tabela deixa de existir no banco.
+> DELETE FROM tabela; é um comando que apaga os dados (registros/linhas) armazenados na tabela, mantendo sua estrutura, colunas e restrições intactas. Já o DROP TABLE tabela; é um comando que elimina toda a estrutura da tabela do banco de dados, excluindo colunas, índices, constraints e os dados juntos de forma definitiva.
 
 ---
 
@@ -587,53 +582,48 @@ Adapte tudo ao tema escolhido na Sprint 1/5.
 -- MODELO GENÉRICO DE BANCO RELACIONAL
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+CREATE DATABASE nome_do_banco;
 
-USE gerenciamento_incidentes;
+USE nome_do_banco;
 
 -- ------------------------------------------------------------
--- TABELA 1 — ANALISTAS (independente)
+-- TABELA 1 — independente
 -- ------------------------------------------------------------
 
-CREATE TABLE analistas (
-id_analista INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(100) NOT NULL,
-email VARCHAR(150) NOT NULL UNIQUE,
-cargo VARCHAR(100)
+CREATE TABLE tabela_a (
+    id_a INT PRIMARY KEY AUTO_INCREMENT,
+    campo_a1 VARCHAR(100) NOT NULL,
+    campo_a2 VARCHAR(150) UNIQUE,
+    campo_a3 DATE
 );
 
 -- ------------------------------------------------------------
--- TABELA 2 — DISPOSITIVOS (independente)
+-- TABELA 2 — independente
 -- ------------------------------------------------------------
 
-CREATE TABLE dispositivos (
-id_dispositivo INT PRIMARY KEY AUTO_INCREMENT,
-nome_dispositivo VARCHAR(100) NOT NULL,
-tipo_dispositivo VARCHAR(50) NOT NULL,
-ip_address VARCHAR(45) NOT NULL UNIQUE,
-ativo BOOLEAN NOT NULL DEFAULT TRUE
+CREATE TABLE tabela_b (
+    id_b INT PRIMARY KEY AUTO_INCREMENT,
+    campo_b1 VARCHAR(100) NOT NULL,
+    campo_b2 DECIMAL(10,2) NOT NULL,
+    campo_b3 BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ------------------------------------------------------------
--- TABELA 3 — ALERTAS (depende de DISPOSITIVOS)
+-- TABELA 3 — relacionada à tabela_a
 -- ------------------------------------------------------------
 
-CREATE TABLE alertas (
-id_alerta INT PRIMARY KEY AUTO_INCREMENT,
-titulo VARCHAR(100) NOT NULL UNIQUE,
-descricao TEXT,
-data_alerta DATETIME NOT NULL,
-status VARCHAR(30) NOT NULL DEFAULT 'Novo',
-id_dispositivo INT NOT NULL,
+CREATE TABLE tabela_c (
+    id_c INT PRIMARY KEY AUTO_INCREMENT,
+    id_a INT NOT NULL,
+    campo_c1 DATE NOT NULL,
 
-CONSTRAINT fk_alertas_dispositivos
-        FOREIGN KEY (id_dispositivo)
-        REFERENCES dispositivos(id_dispositivo)
-
+    CONSTRAINT fk_tabela_c_tabela_a
+        FOREIGN KEY (id_a)
+        REFERENCES tabela_a(id_a)
 );
 
 -- ------------------------------------------------------------
--- TABELA 4 — exemplo de tabela associativa -NÃO EXISTE
+-- TABELA 4 — exemplo de tabela associativa
 -- ------------------------------------------------------------
 
 CREATE TABLE tabela_d (
@@ -656,8 +646,8 @@ CREATE TABLE tabela_d (
 -- ALTER TABLE
 -- ------------------------------------------------------------
 
-ALTER TABLE incidentes
-ADD COLUMN observacoes TEXT;
+ALTER TABLE tabela_a
+ADD COLUMN campo_novo VARCHAR(100);
 
 -- ------------------------------------------------------------
 -- TABELA TEMPORÁRIA PARA PRATICAR DROP TABLE
@@ -666,7 +656,7 @@ ADD COLUMN observacoes TEXT;
 CREATE TABLE tabela_teste (
     id_teste INT PRIMARY KEY
 );
- 
+
 DROP TABLE tabela_teste;
 ```
 
@@ -745,13 +735,10 @@ Faça isso para cada tabela criada.
 
 | Tabela | `DESCRIBE` executado? | Estrutura correta? |
 |---|---|---|
-| analistas | Sim | Sim |
-| dispositivos | Sim | Sim |
-| tipos_ameacas | Sim | Sim |
-| alertas | Sim | Sim |
-| incidentes | Sim | Sim |
-| acoes_resposta | Sim| Sim |
-
+| PLATAFORMA | Sim | Sim |
+| USUARIO | Sim | Sim |
+| SERIE | Sim | Sim |
+| ITEM_WATCHLIST | Sim | Sim |
 
 ---
 
@@ -840,9 +827,9 @@ Verifique:
 
 | Problema | Causa identificada | Como foi resolvido |
 |---|---|---|
-| Erro de sintaxe ao criar analistas | O tipo INT(100) planejado na Sprint 1/5 não é válido para uma chave primária simples | Substituído por INT |
-| Erro de FOREIGN KEY em incidentes | A tabela alertas ainda não existia no momento da tentativa de criar incidentes | Ajustada a ordem de criação: alertas passou a ser criada antes de incidentes |
-
+|  |  |  |
+|  |  |  |
+|  |  |  |
 
 Caso não encontre problemas:
 

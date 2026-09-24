@@ -1,7 +1,7 @@
 # SPRINT 1/5 — Planejamento do Banco de Dados
 
 **Disciplina:** Laboratório de Banco de Dados  
-**Data:** 31/08/2026  
+**Data:** 01/09/2026  
 **Modalidade:** Atividade individual  
 
 ---
@@ -35,12 +35,14 @@ Nesta Sprint 1/5, o foco é exclusivamente o **planejamento do banco de dados**.
 
 **Nome completo:**
 
-> Vinícius Eduardo Lima de Assis.
+> RAQUEL SILVA DOS SANTOS
 
 **Nome escolhido para o banco de dados:**
 
 ```text
-pacote_viagens
+
+series_watchlist_db
+
 ```
 
 ---
@@ -73,7 +75,7 @@ Alguns exemplos:
 
 ### Tema escolhido
 
-> Viagens.
+> Catálogo e lista pessoal de séries com notas e status de exibição (estilo Watchlist / Letterboxd de séries).
 
 ---
 
@@ -90,7 +92,13 @@ A descrição deve responder:
 
 ### Descrição
 
-> O sistema de banco de dados de pacotes de viagens representa o contexto de organização e gestão de ofertas turísticas, solucionando o problema de centralizar informações sobre destinos, preços e serviços. Ele será utilizado por agências de turismo, que cadastrarão e administrarão os pacotes, e por clientes interessados em consultar e reservar viagens. As principais informações armazenadas serão destinos, preços, hospedagens, transportes e dados de clientes cadastrados. O sistema permitirá operações como cadastro de pacotes, consulta, reservas, atualização de informações e emissão de relatórios.
+> Usuários precisam de uma forma fácil e centralizada de registrar quais séries estão assistindo, quais já terminaram, dar notas e salvar resenhas curtas.
+
+**Quem utilizaria:** Pessoas que assistem a séries e gostam de organizar suas maratonas e histórico.
+
+**Informações principais:** Dados dos usuários, catálogo de séries, plataformas de streaming onde as séries estão disponíveis e o registro de cada série assistida com nota e status.
+
+**Operações permitidas:** Cadastrar usuários, cadastrar séries e plataformas, adicionar séries à lista pessoal com nota/comentário.
 
 ---
 
@@ -100,7 +108,7 @@ Explique qual é o principal objetivo do banco de dados proposto.
 
 ### Objetivo
 
->  O objetivo é centralizar e organizar todas as informações relacionadas às ofertas turísticas, garantindo que agências possam gerenciar seus pacotes de forma eficiente e que clientes tenham acesso rápido e confiável para consultar e reservar viagens e/ou hospedagens.
+> Gerenciar um catálogo simples de séries associado a plataformas de streaming e permitir que usuários controlem seu histórico e avaliações em uma única lista personalizada.
 
 ---
 
@@ -112,12 +120,11 @@ Liste as principais funcionalidades ou informações que deverão ser contemplad
 
 ### O banco deverá permitir:
 
-1. Cadastro de pacotes
-2. Hospedagens
-3. Destinos
-4. Transportes
-5. Reservas
-6. Dados do Cliente
+1. Cadastrar usuários com e-mails únicos.
+2. Cadastrar plataformas de streaming (Netflix, Prime Video, HBO Max, etc.).
+3. Cadastrar séries vinculadas à sua plataforma principal.
+4. Adicionar séries à lista do usuário com status ("Quero Ver", "Assistindo", "Finalizada").
+5. Registrar notas (0 a 10) e comentários na própria lista.
 
 ---
 
@@ -151,11 +158,10 @@ Pagamento
 
 | Nº | Entidade | O que representa? |
 |---:|---|---|
-| 1 | Cliente | dados pessoais do usuário |
-| 2 | Destino  | dados do local |
-| 3 | Hospedagem | dados das acomodações |
-| 4 | Transporte | meio de deslocamento |
-
+| 1 | Usuário | Pessoa cadastrada que possui uma lista de séries. |
+| 2 | Plataforma | Serviço de streaming onde a série é exibida (ex.: Netflix, Max). |
+| 3 | Serie | Série catalogada no sistema com título, ano e gênero. |
+| 4 | Item_watchlist | Registro que vincula o usuário à série com seu status, nota e comentário. |
 
 > Como referência para esta atividade, planeje **pelo menos 4 tabelas relacionadas**.
 
@@ -170,66 +176,64 @@ Para cada entidade, identifique os principais atributos que deverão ser armazen
 **Nome da entidade:**
 
 ```text
-Cliente
+USUÁRIO
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_cliente | Identificação única do cliente | INT | Sim |
-| nome | Nome completo do cliente | VARCHAR(100) | Sim |
-| cpf | CPF do cliente | VARCHAR(14) | Sim |
-| email | E-mail do cliente | VARCHAR(100) | Sim |
-| telefone | Número de telefone do cliente | VARCHAR(20) | Não |
+| id_usuario | Código identificador do usuário | INT | Sim |
+| nome | Nome completo do usuário | VARCHAR(100) | Sim |
+| email | E-mail de cadastro | VARCHAR(100) | Sim |
+| data_cadastro | Data de criação da conta | DATE | Sim |
+
 
 ## Entidade 2
 
 **Nome da entidade:**
 
 ```text
-Destino
+
+PLATAFORMA
+
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_destino | Identificação única do destino | INT | Sim |
-| nome | Nome da cidade ou local | VARCHAR(100) | Sim |
-| pais | País onde o destino está localizado | VARCHAR(60) | Sim |
-| estado | Estado ou região do destino | VARCHAR(60) | Não |
-| descricao | Descrição do destino | TEXT | Não |
+| Id_plataforma | Código da plataforma | INT| Sim |
+| Nome_plataforma | Nome do streaming (Netflix, Max, etc.) | VARCHAR(50) | Sim |
 
 ## Entidade 3
 
 **Nome da entidade:**
 
 ```text
-Hospedagem
+SERIE
+
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_hospedagem |Identificação única da hospedagem  | INT | Sim |
-| nome | Nome do hotel ou acomodação | VARCHAR(100) | Sim |
-| endereco | Endereço da hospedagem | VARCHAR(200) | Sim |
-| tipo | Tipo de acomodação | VARCHAR(50) | Sim |
-| valor_diaria | Valor da diária | DECIMAL(10,2) | Sim |
+| Id_serie | Código identificador da série | INT | sim |
+| Titulo | Título da série | VARCHAR(100) | Sim |
+| Genero | Gênero da serie (Drama, Comédia, Sci-Fi) | VARCHAR(50) | Sim |
+| Ano_lancamento | Ano de estreia da serie | INT | Sim |
+| Id_plataforma | Plataforma onde é exibida (FK) | INT | Sim |
 
 ## Entidade 4
 
 **Nome da entidade:**
 
 ```text
-Transporte
+Item_watchlist
 ```
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_transporte | Identificação única do transporte | INT | Sim |
-| tipo | Tipo de transporte utilizado | VARCHAR(50) | Sim |
-| empresa | Nome da empresa de transporte | VARCHAR(100) | Sim |
-| origem | Local de partida | VARCHAR(100) | Sim |
-| destino | Local de chegada | VARCHAR(100) | Sim |
-
-
+| Id_usuário | Usuário dono da lista (FK) |  INT| Sim |
+| Id_serie | Série adicionada (FK) | INT | Sim |
+| Status_assistindo | Status ("Quero Ver", "Assistindo", "Finalizada") | VARCHAR(20) | Sim |
+| Nota | Nota atribuída pelo usuário (0 a 10) | DECIMAL(3,1) | Não |
+| Comentário | Breve resenha pessoal | VARCHAR(255) | Não |
 
 ## Outras entidades
 
@@ -249,10 +253,10 @@ Cada tabela deverá possuir uma forma de identificar unicamente seus registros.
 
 | Entidade/Tabela | Chave primária prevista | Justificativa |
 |---|---|---|
-| Cliente | id_cliente | Identifica cada cliente de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Destino | id_destino | Identifica cada destino de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Hospedagem | id_hospedagem | Identifica cada hospedagem de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Transporte | id_transporte | Identifica cada transporte de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
+| Usuario |  Id_usuario | Código numérico sequencial único gerado via AUTO_INCREMENT. |
+| Plataforma | Id_plataforma |Código numérico sequencial único via AUTO_INCREMENT.  |
+| Serie | Id_serie | Identificador numérico único para evitar duplicidade de títulos. |
+| Item_watchlist |(id_usuario, id_serie) | Chave primária composta pelas duas FKs, identificando unicamente a relação N:N sem necessidade de um ID surrogate. | |
 
 Considere:
 
@@ -279,11 +283,10 @@ Produto aparece em Item_Pedido
 
 | Entidade A | Relacionamento | Entidade B |
 |---|---|---|
-| Cliente | escolhe | Destino |
-| Cliente | reserva | Hospedagem |
-| Cliente | utiliza | Transporte |
-| Destino | possui | Hospedagem |
-| Destino | utiliza | Transporte |
+| Plataforma | disponibiliza | serie |
+| usuário | adiciona na lista | item_watchlist |
+| serie | é registrada em | item_watchlist |
+
 
 ---
 
@@ -299,10 +302,10 @@ N:N  → muitos para muitos
 
 | Relacionamento | Cardinalidade prevista | Justificativa |
 |---|---|---|
-| Cliente escolhe Destino | N:N | Um cliente pode escolher vários destinos, e um mesmo destino pode ser escolhido por vários clientes |
-| Cliente reserva Hospedagem | N:N | Um cliente pode reservar várias hospedagens, e uma hospedagem pode receber reservas de vários clientes |
-| Cliente utiliza Transporte | N:N | Um cliente pode utilizar diferentes transportes, e um transporte pode ser utilizado por vários clientes |
-| Destino possui Hospedagem | 1:N | Um destino pode possuir várias hospedagens, mas cada hospedagem está localizada em um único destino |
+| Plataforma- serie | 1:N | Uma plataforma pode ter várias series cadastradas. |
+| Usuario - item_watchlist | 1:N | Um usuário pode ter vários registros na lista. |
+| Serie - Item_watchlist | 1:N | Uma serie pode estar na lista de vários usuários. |
+|  |  |  |
 
 ---
 
@@ -310,10 +313,9 @@ N:N  → muitos para muitos
 
 | Tabela | Atributo previsto como FK | Referencia qual tabela? |
 |---|---|---|
-| Hospedagem | id_destino | Destino |
-| Cliente | id_destino | Destino |
-| Cliente | id_hospedagem | Hospedagem |
-| Cliente | id_transporte | Transporte |
+| SERIE | Id_plataforma | Plataforma (id_plataforma) |
+| ITEM_WATCHLIST | Id_usuario | Usuario (Id_usuário) |
+| ITEM_WATCHLIST | Id_serie | Serie (Id_serie) |
 
 > As `FOREIGN KEY` serão implementadas posteriormente. Nesta Sprint, apenas planeje os relacionamentos.
 
@@ -334,16 +336,11 @@ AUTO_INCREMENT
 
 | Tabela | Atributo | Restrição prevista | Motivo |
 |---|---|---|---|
-| Cliente | id_cliente | PRIMARY KEY, AUTO_INCREMENT | Identificar cada cliente de forma única e gerar o código automaticamente |
-| Cliente | cpf | NOT NULL, UNIQUE | O CPF é obrigatório e não pode pertencer a mais de um cliente |
-| Cliente | email | NOT NULL, UNIQUE | O e-mail é obrigatório e deve ser único para cada cliente |
-| Destino | id_destino | PRIMARY KEY, AUTO_INCREMENT | Identificar cada destino de forma única e gerar o código automaticamente |
-| Destino | nome | NOT NULL | O nome do destino é uma informação obrigatória |
-| Hospedagem | id_hospedagem | PRIMARY KEY, AUTO_INCREMENT | Identificar cada hospedagem de forma única e gerar o código automaticamente |
-| Hospedagem | valor_diaria | NOT NULL | O valor da diária é necessário para registrar o preço da hospedagem |
-| Transporte | id_transporte | PRIMARY KEY, AUTO_INCREMENT | Identificar cada transporte de forma única e gerar o código automaticamente |
-| Transporte | tipo | NOT NULL | O tipo de transporte é necessário para identificar o serviço utilizado |
-
+| USUARIO | email | UNIQUE, NOT NULL | Impede que existam dois usuários com o mesmo e-mail. |
+| PLATAFORMA | nome_plataforma | UNIQUE, NOT NULL | Evita duplicidade de cadastro da mesma plataforma de streaming. |
+| ITEM_WATCHLIST | (id_usuario, id_serie) | PRIMARY KEY | Identifica a linha de forma única e impede que o mesmo usuário repita a mesma série na lista. |
+| ITEM_WATCHLIST | status_assistindo | DEFAULT 'Quero Ver' | Caso o usuário não especifique, a série entra automaticamente como "Quero Ver". |
+| USUARIO, PLATAFORMA, SERIE | id_* | PRIMARY KEY, AUTO_INCREMENT | Garante a identificação única e o preenchimento automático das chaves primárias das entidades base. |
 ---
 
 # 13. Regras de negócio
@@ -362,11 +359,11 @@ Um empréstimo deve possuir uma data de realização.
 
 ### Regras do seu banco
 
-1. Um cliente não pode possuir dois cadastros com o mesmo CPF.
-2. Um cliente não pode possuir dois cadastros com o mesmo e-mail.
-3. Uma hospedagem deve estar associada a um destino existente.
-4. O valor da diária de uma hospedagem deve ser maior que zero.
-5. Todo transporte cadastrado deve possuir uma empresa, uma origem e um destino informados.
+1. Não é permitido cadastrar dois usuários com o mesmo endereço de e-mail.
+2. Cada série só pode ser adicionada uma única vez na lista de um mesmo usuário.
+3. A nota atribuída deve ser um número entre 0 e 10 (ou nula, se o usuário ainda não assistiu).
+4. O status de exibição deve assumir apenas os valores: "Quero Ver", "Assistindo" ou "Finalizada".
+5. Uma série obrigatoriamente deve estar vinculada a uma plataforma cadastrada.
 
 ---
 
@@ -393,40 +390,33 @@ CLIENTE 1 ───── N PEDIDO
 ### Esboço do seu banco
 
 ```text
-CLIENTE
-├── id_cliente (PK)
+PLATAFORMA
+├── id_plataforma (PK)
+└── nome_plataforma
+
+SERIE
+├── id_serie (PK)
+├── titulo
+├── genero
+├── ano_lancamento
+└── id_plataforma (FK)
+
+USUARIO
+├── id_usuario (PK)
 ├── nome
-├── cpf (UNIQUE)
-├── email (UNIQUE)
-└── telefone
+├── email
+└── data_cadastro
 
-DESTINO
-├── id_destino (PK)
-├── nome
-├── pais
-├── estado
-└── descricao
+ITEM_WATCHLIST
+├── id_usuario (PK, FK)
+├── id_serie (PK, FK)
+├── status_assistindo
+├── nota
+└── comentario
 
-HOSPEDAGEM
-├── id_hospedagem (PK)
-├── nome
-├── endereco
-├── tipo
-├── valor_diaria
-└── id_destino (FK)
-
-TRANSPORTE
-├── id_transporte (PK)
-├── tipo
-├── empresa
-├── origem
-└── destino
-
-
-CLIENTE N ───── N DESTINO
-CLIENTE N ───── N HOSPEDAGEM
-CLIENTE N ───── N TRANSPORTE
-DESTINO 1 ───── N HOSPEDAGEM
+PLATAFORMA  1 ───── N  SERIE
+USUARIO     1 ───── N  ITEM_WATCHLIST
+SERIE       1 ───── N  ITEM_WATCHLIST
 ```
 
 ---
@@ -435,10 +425,10 @@ DESTINO 1 ───── N HOSPEDAGEM
 
 Descreva que tipos de registros deverão existir no banco quando ele for populado.
 
-1. Dados de clientes, como nome, CPF, e-mail e telefone.
-2. Dados de destinos turísticos, como cidade, país, estado e descrição.
-3. Dados de hospedagens, como nome do hotel ou acomodação, endereço, tipo e valor da diária.
-4. Dados de transportes, como tipo de transporte, empresa, origem e destino.
+1. Plataformas de streaming: Netflix, Prime Video, HBO Max, Disney+.
+2. Séries: Títulos como Breaking Bad, Stranger Things, The Last of Us, com gênero e ano de estreia.
+3. Usuários: Perfis de exemplo com nome, e-mail e data de cadastro.
+4. Itens na watchlist: Associações com status (ex.: "Finalizada", "Assistindo"), notas (ex.: 9.5, 8.0) e pequenos comentários de resenha.
 
 ---
 
@@ -458,19 +448,19 @@ Quais categorias possuem mais de 5 produtos?
 
 ### Perguntas do seu projeto
 
-1. Quais clientes estão cadastrados no sistema?
-2. Quais destinos turísticos estão cadastrados e em quais países estão localizados?
-3. Quais hospedagens estão disponíveis em cada destino?
-4. Quais são os valores das diárias das hospedagens cadastradas?
-5. Quais empresas e tipos de transporte estão cadastrados?
+1. Quais séries cadastradas pertencem à plataforma "Netflix"?
+2. Qual é a média das notas de cada série calculada a partir das avaliações dos usuários?
+3. Quantas séries cada usuário tem marcadas com o status "Finalizada"?
+4. Quais séries cadastradas são do gênero "Drama" e foram lançadas a partir de 2020?
+5. Qual é o top 3 de séries com as maiores notas médias entre os usuários?
 
 ---
 
 # 17. Decisões e dúvidas pendentes
 
-- Nenhuma dúvida pendente nesta Sprint.
-- Nenhuma dúvida pendente nesta Sprint.
-- Nenhuma dúvida pendente nesta Sprint.
+- 
+- 
+- 
 
 Caso não existam dúvidas:
 

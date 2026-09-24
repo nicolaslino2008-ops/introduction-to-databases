@@ -132,9 +132,66 @@ USE loja_virtual;
 ## Código utilizado no seu projeto
 
 ```sql
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+-- Copie aqui o código utilizado.
+CREATE DATABASE Clinica_Ser;
+USE Clinica_Ser;
 
-USE gerenciamento_incidentes;
+-- Tabela Paciente
+CREATE TABLE Paciente (
+    id_paciente INT AUTO_INCREMENT PRIMARY KEY,
+    nome_completo VARCHAR(100) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    telefone VARCHAR(15),
+    sexo ENUM('M','F') NOT NULL,
+    cpf VARCHAR(11) NOT NULL UNIQUE,
+    imagem VARCHAR(255)
+);
+
+-- Tabela Médico
+CREATE TABLE Medico (
+    id_medico INT AUTO_INCREMENT PRIMARY KEY,
+    nome_completo VARCHAR(100) NOT NULL,
+    crm VARCHAR(20) NOT NULL UNIQUE,
+    especialidade VARCHAR(50)
+);
+
+-- Tabela Convênio
+CREATE TABLE Convenio (
+    id_convenio INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
+);
+
+-- Paciente vinculado a Convênio (1:1)
+ALTER TABLE Paciente
+ADD COLUMN id_convenio INT UNIQUE,
+ADD CONSTRAINT fk_paciente_convenio FOREIGN KEY (id_convenio) REFERENCES Convenio(id_convenio);
+
+-- Tabela Exame
+CREATE TABLE Exame (
+    id_exame INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(100) NOT NULL,
+    preco DECIMAL(10,2) NOT NULL CHECK (preco >= 0)
+);
+
+-- Tabela Agendamento
+CREATE TABLE Agendamento (
+    id_agendamento INT AUTO_INCREMENT PRIMARY KEY,
+    data_agendamento DATETIME NOT NULL,
+    id_paciente INT NOT NULL,
+    id_medico INT NOT NULL,
+    id_exame INT NOT NULL,
+    CONSTRAINT fk_agendamento_paciente FOREIGN KEY (id_paciente) REFERENCES Paciente(id_paciente),
+    CONSTRAINT fk_agendamento_medico FOREIGN KEY (id_medico) REFERENCES Medico(id_medico),
+    CONSTRAINT fk_agendamento_exame FOREIGN KEY (id_exame) REFERENCES Exame(id_exame)
+);
+
+-- Tabela Resultado
+CREATE TABLE Resultado (
+    id_resultado INT AUTO_INCREMENT PRIMARY KEY,
+    laudo_pdf VARCHAR(255) NOT NULL,
+    id_exame INT NOT NULL,
+    CONSTRAINT fk_resultado_exame FOREIGN KEY (id_exame) REFERENCES Exame(id_exame)
+);
 
 ```
 
@@ -142,9 +199,7 @@ USE gerenciamento_incidentes;
 
 ```text
 
-gerenciamento_incidentes;
-
-```
+```Clinica Ser
 
 ---
 
@@ -214,12 +269,12 @@ CREATE TABLE nome_tabela (
 
 | Nº | Nome da tabela | Finalidade |
 |---:|---|---|
-| 1 | analistas  | Armazena os profissionais responsáveis pelos incidentes |
-| 2 | dispositivos  | Armazena computadores, servidores e equipamentos monitorados |
-| 3 | tipos_ameacas | Armazena as classificações de ameaças |
-| 4 | alertas | Armazena os alertas de segurança gerados pelos dispositivos |
-| 5 | incidentes | Armazena os incidentes de segurança identificados |
-| 6 | acoes_resposta | Armazena as ações realizadas durante o tratamento de um incidente |
+| 1 |Paciente|Armazena dados pessoais dos pacientes (nome, CPF, telefone, data de nascimento, sexo, imagem)|
+| 2 |Medico|Registra informações dos médicos (nome, CRO, especialidade)|
+| 3 |Convenio|Lista os convênios disponíveis e vincula cada paciente a apenas um convênio|
+| 4 |Exame|Define os tipos de exames realizados, com preço e descrição|
+| 5 |Agendamento|Controla os agendamentos, vinculando paciente, médico e exame em uma data/hora específica|
+| 6 |Resultado|Armazena os laudos em PDF e vincula cada resultado a um exame realizado|
 
 ---
 
@@ -250,12 +305,12 @@ Se `PEDIDO` possui uma FK para `CLIENTE`, então `CLIENTE` deve existir antes de
 
 ## Ordem definida para o seu projeto
 
-1. analistas (independente)
-2. dispositivos (independente)
-3. tipos_ameacas (independente)
-4. alertas (depende de dispositivos)
-5. incidentes (depende de analistas, dispositivos, tipos_ameacas e alertas)
-6. acoes_resposta (depende de incidentes)
+1. Paciente
+2. Medico
+3. Convenio
+4. Exame
+5. Agendamento
+6. Resultado
 
 ---
 
@@ -278,13 +333,12 @@ id_cliente INT PRIMARY KEY AUTO_INCREMENT
 ## Chaves primárias implementadas
 
 | Tabela | Chave primária | Utiliza `AUTO_INCREMENT`? |
-|---|---|---|
-|analistas  | id_analista | Sim |
-| dispositivos | id_dispositivo | Sim |
-| tipos_ameacas | id_ameaca | Sim |
-| alertas | id_alerta | Sim |
-| incidentes | id_incidente | Sim |
-| acoes_resposta | id_acao | Sim |
+|Paciente|id_paciente|Sim|
+|Medico|id_medico|Sim|
+|Convenio|id_convenio|Sim|
+|Exame|id_exame|Sim|
+|Agendamento|id_agendamento|Sim|
+|Resultado|id_resultado|Sim|
 
 ---
 
@@ -303,12 +357,17 @@ Não utilize `NOT NULL` indiscriminadamente. A restrição deve refletir uma reg
 ## Campos obrigatórios implementados
 
 | Tabela | Campo | Por que é obrigatório? |
-|---|---|---|
-| analistas | nome, email | Todo analista precisa ser identificável e contatável |
-| dispositivos | nome_dispositivo, tipo_dispositivo, ip_address | São necessários para identificar o equipamento monitorado |
-| incidentes | titulo, descricao, severidade, status | Definidos como obrigatórios pela regra de negócio 1 da Sprint 1/5 |
-| alertas |titulo, status  | Todo alerta precisa ter um identificador textual e uma situação|
-| acoes_resposta  | descricao, id_incidente | Toda ação precisa de uma descrição e estar vinculada a um incidente |
+
+Paciente	nome_completo	Identificação essencial do paciente
+Paciente	data_nascimento	Necessário para cadastro clínico
+Paciente	sexo	Informação obrigatória para ficha médica
+Paciente	cpf	Documento único de identificação
+Medico	nome_completo	Identificação essencial do médico
+Medico	crm	Registro profissional obrigatório
+Exame	tipo	Identificação do exame
+Exame	preco	Valor do exame não pode ser nulo
+Agendamento	data_agendamento	Sem data não há agendamento
+Resultado	laudo_pdf	Resultado precisa estar vinculado a um arquivo
 
 ---
 
@@ -331,9 +390,9 @@ cpf CHAR(11) NOT NULL UNIQUE
 ## Restrições `UNIQUE` implementadas
 
 | Tabela | Campo | Por que não pode se repetir? |
-|---|---|---|
-| analistas | email | Evita analistas duplicados com o mesmo e-mail |
-| dispositivos | ip_address | Evita dispositivos duplicados com o mesmo IP  |
+|Paciente|cpf|Cada paciente deve ter apenas um CPF|
+|Medico|cro|Cada médico possui um CRO único|
+|Paciente|id_convenio|Um paciente só pode ter um convenio por vez|
 
 Caso nenhuma seja necessária, justifique:
 
@@ -360,15 +419,9 @@ status VARCHAR(20) NOT NULL DEFAULT 'ATIVO'
 ## Valores padrão utilizados
 
 | Tabela | Campo | DEFAULT | Justificativa |
-|---|---|---|---|
-| dispositivos | ativo | TRUE | Um dispositivo cadastrado é considerado ativo até que se informe o contrário |
-| alertas | status | ABERTO |  Todo alerta recém-gerado começa como aberto|
-| alertas | data_alerta | 'ABERTO' | Registra automaticamente o momento em que o alerta foi criado |
-| incidentes | status | 'ABERTO' | Reflete a regra de negócio 2 da Sprint 1/5 (status inicial do incidente) |
-| incidentes | data_identificacao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que o incidente foi identificado |
-| acoes_resposta | data_acao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que a ação foi executada |
-
-
+|Exame|preco|DEFAULT 0.00|Evita valores nulos, mas permite atualização posterior|
+|Paciente|imagem|DEFAULT NULL|Nem todo paciente terá imagem cadastrada|
+|Resultado|laudo_pdf|DEFAULT NULL|Permite criar exame antes de anexar laudo|
 
 Caso não utilize `DEFAULT`, justifique:
 
@@ -420,15 +473,11 @@ Verifique se:
 ## Chaves estrangeiras implementadas
 
 | Tabela | Campo FK | Referencia | Relacionamento |
-|---|---|---|---|
-| alertas | id_dispositivo | dispositivos | Um dispositivo pode gerar vários alertas |
-| incidentes | id_analista | analistas | Um analista pode acompanhar vários incidentes |
-|incidentes  | id_dispositivo | dispositivos | Um dispositivo pode estar relacionado a vários incidentes |
-|incidentes  | id_ameaca | tipos_ameacas | Um tipo de ameaça pode classificar vários incidentes |
-| incidentes | id_alerta | alertas | Um alerta pode dar origem a um incidente |
-| acoes_resposta | id_incidente |incidentes  | Um incidente pode possuir várias ações de resposta |
-
-
+|Paciente|id_convenio|Convenio(id_convenio)|Paciente possui convenio|
+|Agendamento|id_paciente|Paciente(id_paciente)|Paciente realiza agendamento|
+|Agendamento|id_medico|Medico(id_medico)|Medico solicita agendamento|
+|Agendamento|id_exame|Exame(id_exame)|Agendamento refere-se a exame|
+|Resultado|id_exame|Exame(id_exame)|Resultado vinculado a exame|
 ---
 
 # 12. Relacionamento N:N
@@ -477,11 +526,11 @@ CREATE TABLE tabela_associativa (
 ## Seu banco possui relacionamento N:N?
 
 - [ ] Sim
-- [ x ] Não
+- [x] Não
 
 Se sim, explique como foi implementado:
 
-> Todos os relacionamentos planejados na Sprint 1/5 são do tipo 1:N, portanto não foi necessária nenhuma tabela associativa.
+> Escreva aqui.
 
 ---
 
@@ -515,15 +564,20 @@ ADD CONSTRAINT uq_nome UNIQUE (novo_campo);
 ## ALTER TABLE utilizado no projeto
 
 ```sql
--- ALTER TABLE incidentes
--- ADD COLUMN observacoes TEXT;
+-- Cole aqui o comando executado.
+ALTER TABLE Paciente
+MODIFY COLUMN telefone VARCHAR(20);
 
 ```
 
 ### Explique a alteração
 
-> Foi adicionado o campo observacoes à tabela incidentes para permitir o registro de anotações livres do analista sobre o andamento do caso — informação que não havia sido prevista na Sprint 1/5, mas que se mostrou útil durante a implementação.
+> Escreva aqui.
+ALTER TABLE Paciente → indica que vamos alterar a tabela Paciente.
 
+MODIFY COLUMN telefone VARCHAR(20) → muda o tipo do campo telefone para aceitar até 20 caracteres (antes estava com 15).
+
+Isso é uma alteração estrutural válida e prática, pois reflete uma necessidade real: armazenar números de telefone mais completos.
 ---
 
 # 14. DROP TABLE — exercício controlado
@@ -547,11 +601,11 @@ DROP TABLE tabela_teste;
 ## Código executado
 
 ```sql
--- CREATE TABLE tabela_teste (
---    id_teste INT PRIMARY KEY
---);
-
---DROP TABLE tabela_teste;
+-- Cole aqui o teste realizado.
+CREATE TABLE tabela_teste (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    descricao VARCHAR(100)
+);
 
 ```
 
@@ -569,8 +623,9 @@ e:
 DROP TABLE tabela;
 ```
 
-> DELETE FROM tabela; remove apenas os registros (linhas) armazenados na tabela, mas mantém a estrutura (colunas, chaves, restrições) intacta, a tabela continua existindo, apenas vazia. Já DROP TABLE tabela; remove a tabela inteira, incluindo sua estrutura, dados e restrições; depois desse comando, a tabela deixa de existir no banco.
-
+> Responda aqui.
+DELETE FROM apaga todos os pacientes cadastrados, mas a tabela Paciente continua disponivel.
+DROP TABLE apaga completamente a tabela Paciente do banco.
 ---
 
 # 15. Estrutura genérica completa para adaptar
@@ -587,53 +642,48 @@ Adapte tudo ao tema escolhido na Sprint 1/5.
 -- MODELO GENÉRICO DE BANCO RELACIONAL
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+CREATE DATABASE nome_do_banco;
 
-USE gerenciamento_incidentes;
+USE nome_do_banco;
 
 -- ------------------------------------------------------------
--- TABELA 1 — ANALISTAS (independente)
+-- TABELA 1 — independente
 -- ------------------------------------------------------------
 
-CREATE TABLE analistas (
-id_analista INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(100) NOT NULL,
-email VARCHAR(150) NOT NULL UNIQUE,
-cargo VARCHAR(100)
+CREATE TABLE tabela_a (
+    id_a INT PRIMARY KEY AUTO_INCREMENT,
+    campo_a1 VARCHAR(100) NOT NULL,
+    campo_a2 VARCHAR(150) UNIQUE,
+    campo_a3 DATE
 );
 
 -- ------------------------------------------------------------
--- TABELA 2 — DISPOSITIVOS (independente)
+-- TABELA 2 — independente
 -- ------------------------------------------------------------
 
-CREATE TABLE dispositivos (
-id_dispositivo INT PRIMARY KEY AUTO_INCREMENT,
-nome_dispositivo VARCHAR(100) NOT NULL,
-tipo_dispositivo VARCHAR(50) NOT NULL,
-ip_address VARCHAR(45) NOT NULL UNIQUE,
-ativo BOOLEAN NOT NULL DEFAULT TRUE
+CREATE TABLE tabela_b (
+    id_b INT PRIMARY KEY AUTO_INCREMENT,
+    campo_b1 VARCHAR(100) NOT NULL,
+    campo_b2 DECIMAL(10,2) NOT NULL,
+    campo_b3 BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ------------------------------------------------------------
--- TABELA 3 — ALERTAS (depende de DISPOSITIVOS)
+-- TABELA 3 — relacionada à tabela_a
 -- ------------------------------------------------------------
 
-CREATE TABLE alertas (
-id_alerta INT PRIMARY KEY AUTO_INCREMENT,
-titulo VARCHAR(100) NOT NULL UNIQUE,
-descricao TEXT,
-data_alerta DATETIME NOT NULL,
-status VARCHAR(30) NOT NULL DEFAULT 'Novo',
-id_dispositivo INT NOT NULL,
+CREATE TABLE tabela_c (
+    id_c INT PRIMARY KEY AUTO_INCREMENT,
+    id_a INT NOT NULL,
+    campo_c1 DATE NOT NULL,
 
-CONSTRAINT fk_alertas_dispositivos
-        FOREIGN KEY (id_dispositivo)
-        REFERENCES dispositivos(id_dispositivo)
-
+    CONSTRAINT fk_tabela_c_tabela_a
+        FOREIGN KEY (id_a)
+        REFERENCES tabela_a(id_a)
 );
 
 -- ------------------------------------------------------------
--- TABELA 4 — exemplo de tabela associativa -NÃO EXISTE
+-- TABELA 4 — exemplo de tabela associativa
 -- ------------------------------------------------------------
 
 CREATE TABLE tabela_d (
@@ -656,8 +706,8 @@ CREATE TABLE tabela_d (
 -- ALTER TABLE
 -- ------------------------------------------------------------
 
-ALTER TABLE incidentes
-ADD COLUMN observacoes TEXT;
+ALTER TABLE tabela_a
+ADD COLUMN campo_novo VARCHAR(100);
 
 -- ------------------------------------------------------------
 -- TABELA TEMPORÁRIA PARA PRATICAR DROP TABLE
@@ -666,7 +716,7 @@ ADD COLUMN observacoes TEXT;
 CREATE TABLE tabela_teste (
     id_teste INT PRIMARY KEY
 );
- 
+
 DROP TABLE tabela_teste;
 ```
 
@@ -744,15 +794,14 @@ Faça isso para cada tabela criada.
 ## Validações realizadas
 
 | Tabela | `DESCRIBE` executado? | Estrutura correta? |
-|---|---|---|
-| analistas | Sim | Sim |
-| dispositivos | Sim | Sim |
-| tipos_ameacas | Sim | Sim |
-| alertas | Sim | Sim |
-| incidentes | Sim | Sim |
-| acoes_resposta | Sim| Sim |
-
-
+| Tabela | ``DESCRIBE`` executado? | Estrutura correta? |
+| --- | --- | --- |
+| **[Paciente](ca://s?q=Validar_tabela_Paciente)** | Sim | Deve mostrar ``id_paciente`` como PK, ``cpf`` com UNIQUE, campos obrigatórios com ``NOT ``NULL``. |
+| **[Medico](ca://s?q=Validar_tabela_Medico)** | Sim | Deve mostrar ``id_medico`` como PK, ``crm`` com UNIQUE, ``nome_completo`` obrigatório. |
+| **[Convenio](ca://s?q=Validar_tabela_Convenio)** | Sim | Deve mostrar ``id_convenio`` como PK e ``nome`` obrigatório. |
+| **[Exame](ca://s?q=Validar_tabela_Exame)** | Sim | Deve mostrar ``id_exame`` como PK, ``preco`` com ``CHECK ``(>=0)``, ``tipo`` obrigatório. |
+| **[Agendamento](ca://s?q=Validar_tabela_Agendamento)** | Sim | Deve mostrar ``id_agendamento`` como PK, FKs para ``Paciente``, ``Medico`` e ``Exame``. |
+| **[Resultado](ca://s?q=Validar_tabela_Resultado)** | Sim | Deve mostrar ``id_resultado`` como PK e FK para ``Exame``. |
 ---
 
 # 19. Visualizar o CREATE TABLE gerado pelo MySQL
@@ -839,10 +888,12 @@ Verifique:
 # 21. Registro de problemas encontrados
 
 | Problema | Causa identificada | Como foi resolvido |
-|---|---|---|
-| Erro de sintaxe ao criar analistas | O tipo INT(100) planejado na Sprint 1/5 não é válido para uma chave primária simples | Substituído por INT |
-| Erro de FOREIGN KEY em incidentes | A tabela alertas ainda não existia no momento da tentativa de criar incidentes | Ajustada a ordem de criação: alertas passou a ser criada antes de incidentes |
-
+| Problema | Causa identificada | Como foi resolvido |
+| --- | --- | --- |
+| Erro ao criar banco ``Clinica_Ser`` | O banco já existia, e o comando ``CREATE ``DATABASE`` não permite duplicidade | Utilizar ``CREATE ``DATABASE ``IF ``NOT ``EXISTS ``Clinica_Ser;`` ou remover o banco antigo com ``DROP ``DATABASE ``Clinica_Ser;`` antes de recriar |
+| Erro ao criar tabela ``Paciente`` | A tabela já existia no banco, e ``CREATE ``TABLE`` não permite recriação sem exclusão | Usar ``CREATE ``TABLE ``IF ``NOT ``EXISTS ``Paciente ``(...);`` ou executar ``DROP ``TABLE ``Paciente;`` antes de recriar |
+| Erro de FOREIGN KEY em tabelas dependentes | A tabela pai não havia sido criada antes da tabela filha, ou o campo referenciado não era chave primária | Ajustar a **ordem de criação** das tabelas e garantir que o campo referenciado seja ``PRIMARY ``KEY`` |
+| Erro de sintaxe em comandos SQL | Faltavam vírgulas, ponto e vírgula, ou nomes estavam inconsistentes | Revisar cada comando, conferindo vírgulas entre colunas, fechamento de parênteses e nomes corretos de tabelas/colunas |
 
 Caso não encontre problemas:
 
@@ -934,26 +985,26 @@ SPRINT5-5.sql
 
 Antes de finalizar:
 
-- [x] utilizei como base a `SPRINT1-5.md`;
-- [x] criei um banco de dados;
-- [x] utilizei `USE`;
-- [x] criei pelo menos 4 tabelas relacionadas;
-- [x] todas as tabelas possuem chave primária;
-- [x] utilizei tipos de dados coerentes;
-- [x] apliquei `NOT NULL` quando necessário;
-- [x] apliquei `UNIQUE` quando necessário;
-- [x] apliquei `DEFAULT` quando necessário;
-- [x] implementei as chaves estrangeiras necessárias;
-- [x] respeitei a ordem de criação das tabelas;
-- [x] tratei corretamente relacionamentos N:N, caso existam;
-- [x] executei pelo menos um `ALTER TABLE`;
-- [x] pratiquei `DROP TABLE` em tabela temporária;
-- [x] executei `DESCRIBE` nas tabelas;
-- [x] verifiquei as tabelas no painel Schemas;
-- [x] corrigi erros de execução;
-- [x] organizei o script final;
-- [x] salvei o script como `SPRINT2-5.sql`;
-- [x] preenchi completamente este `SPRINT2-5.md`.
+- [V] utilizei como base a `SPRINT1-5.md`;
+- [V] criei um banco de dados;
+- [V] utilizei `USE`;
+- [V] criei pelo menos 4 tabelas relacionadas;
+- [V] todas as tabelas possuem chave primária;
+- [V] utilizei tipos de dados coerentes;
+- [V] apliquei `NOT NULL` quando necessário;
+- [V] apliquei `UNIQUE` quando necessário;
+- [V] apliquei `DEFAULT` quando necessário;
+- [V] implementei as chaves estrangeiras necessárias;
+- [V] respeitei a ordem de criação das tabelas;
+- [V] tratei corretamente relacionamentos N:N, caso existam;
+- [V] executei pelo menos um `ALTER TABLE`;
+- [V] pratiquei `DROP TABLE` em tabela temporária;
+- [V] executei `DESCRIBE` nas tabelas;
+- [V] verifiquei as tabelas no painel Schemas;
+- [V] corrigi erros de execução;
+- [V] organizei o script final;
+- [V] salvei o script como `SPRINT2-5.sql`;
+- [V] preenchi completamente este `SPRINT2-5.md`.
 
 ---
 

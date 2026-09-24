@@ -132,19 +132,13 @@ USE loja_virtual;
 ## Código utilizado no seu projeto
 
 ```sql
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
-
-USE gerenciamento_incidentes;
-
+CREATE DATABASE IF NOT EXISTS real_estate_database;
+USE real_estate_database;
 ```
 
 ## Nome definitivo do banco
 
-```text
-
-gerenciamento_incidentes;
-
-```
+```real_estate_database```
 
 ---
 
@@ -214,12 +208,10 @@ CREATE TABLE nome_tabela (
 
 | Nº | Nome da tabela | Finalidade |
 |---:|---|---|
-| 1 | analistas  | Armazena os profissionais responsáveis pelos incidentes |
-| 2 | dispositivos  | Armazena computadores, servidores e equipamentos monitorados |
-| 3 | tipos_ameacas | Armazena as classificações de ameaças |
-| 4 | alertas | Armazena os alertas de segurança gerados pelos dispositivos |
-| 5 | incidentes | Armazena os incidentes de segurança identificados |
-| 6 | acoes_resposta | Armazena as ações realizadas durante o tratamento de um incidente |
+| 1 | corretor | Tabela independente que armazena os dados dos profissionais que criarão os anúncios. |
+| 2 | cliente | Tabela independente que armazena os dados dos usuários que buscam imóveis. |
+| 3 | imovel | Tabela que armazena os anúncios e possui FK para o corretor responsável. |
+| 4 | agendamento | Tabela associativa que liga o cliente ao imóvel para registrar a intenção de visita. |
 
 ---
 
@@ -250,12 +242,10 @@ Se `PEDIDO` possui uma FK para `CLIENTE`, então `CLIENTE` deve existir antes de
 
 ## Ordem definida para o seu projeto
 
-1. analistas (independente)
-2. dispositivos (independente)
-3. tipos_ameacas (independente)
-4. alertas (depende de dispositivos)
-5. incidentes (depende de analistas, dispositivos, tipos_ameacas e alertas)
-6. acoes_resposta (depende de incidentes)
+1. corretor
+2. cliente
+3. imovel
+4. agendamento
 
 ---
 
@@ -279,12 +269,10 @@ id_cliente INT PRIMARY KEY AUTO_INCREMENT
 
 | Tabela | Chave primária | Utiliza `AUTO_INCREMENT`? |
 |---|---|---|
-|analistas  | id_analista | Sim |
-| dispositivos | id_dispositivo | Sim |
-| tipos_ameacas | id_ameaca | Sim |
-| alertas | id_alerta | Sim |
-| incidentes | id_incidente | Sim |
-| acoes_resposta | id_acao | Sim |
+| corretor | id_corretor | Sim |
+| cliente | id_cliente | Sim |
+| imovel | id_imovel | Sim |
+| agendamento | id_agendamento | Sim |
 
 ---
 
@@ -304,11 +292,9 @@ Não utilize `NOT NULL` indiscriminadamente. A restrição deve refletir uma reg
 
 | Tabela | Campo | Por que é obrigatório? |
 |---|---|---|
-| analistas | nome, email | Todo analista precisa ser identificável e contatável |
-| dispositivos | nome_dispositivo, tipo_dispositivo, ip_address | São necessários para identificar o equipamento monitorado |
-| incidentes | titulo, descricao, severidade, status | Definidos como obrigatórios pela regra de negócio 1 da Sprint 1/5 |
-| alertas |titulo, status  | Todo alerta precisa ter um identificador textual e uma situação|
-| acoes_resposta  | descricao, id_incidente | Toda ação precisa de uma descrição e estar vinculada a um incidente |
+| corretor | nome | O nome do profissional é indispensável para o cadastro. |
+| imovel | valor | Um anúncio não pode existir sem informar o preço. |
+| cliente | senha | Necessário para realizar a autenticação no sistema. |
 
 ---
 
@@ -332,8 +318,9 @@ cpf CHAR(11) NOT NULL UNIQUE
 
 | Tabela | Campo | Por que não pode se repetir? |
 |---|---|---|
-| analistas | email | Evita analistas duplicados com o mesmo e-mail |
-| dispositivos | ip_address | Evita dispositivos duplicados com o mesmo IP  |
+| corretor | email | Não podem existir duas contas de acesso para o mesmo e-mail. |
+| corretor | creci | É um documento de registro profissional único de cada corretor. |
+| cliente | email | Não podem existir duas contas de acesso para o mesmo e-mail. |
 
 Caso nenhuma seja necessária, justifique:
 
@@ -361,14 +348,7 @@ status VARCHAR(20) NOT NULL DEFAULT 'ATIVO'
 
 | Tabela | Campo | DEFAULT | Justificativa |
 |---|---|---|---|
-| dispositivos | ativo | TRUE | Um dispositivo cadastrado é considerado ativo até que se informe o contrário |
-| alertas | status | ABERTO |  Todo alerta recém-gerado começa como aberto|
-| alertas | data_alerta | 'ABERTO' | Registra automaticamente o momento em que o alerta foi criado |
-| incidentes | status | 'ABERTO' | Reflete a regra de negócio 2 da Sprint 1/5 (status inicial do incidente) |
-| incidentes | data_identificacao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que o incidente foi identificado |
-| acoes_resposta | data_acao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que a ação foi executada |
-
-
+| agendamento | status | 'Pendente' | Todo agendamento recém-criado deve iniciar com o status Pendente até ser confirmado. |
 
 Caso não utilize `DEFAULT`, justifique:
 
@@ -421,13 +401,9 @@ Verifique se:
 
 | Tabela | Campo FK | Referencia | Relacionamento |
 |---|---|---|---|
-| alertas | id_dispositivo | dispositivos | Um dispositivo pode gerar vários alertas |
-| incidentes | id_analista | analistas | Um analista pode acompanhar vários incidentes |
-|incidentes  | id_dispositivo | dispositivos | Um dispositivo pode estar relacionado a vários incidentes |
-|incidentes  | id_ameaca | tipos_ameacas | Um tipo de ameaça pode classificar vários incidentes |
-| incidentes | id_alerta | alertas | Um alerta pode dar origem a um incidente |
-| acoes_resposta | id_incidente |incidentes  | Um incidente pode possuir várias ações de resposta |
-
+| imovel | id_corretor | corretor(id_corretor) | 1:N (Um corretor possui vários imóveis) |
+| agendamento | id_cliente | cliente(id_cliente) | 1:N (Um cliente faz vários agendamentos) |
+| agendamento | id_imovel | imovel(id_imovel) | 1:N (Um imóvel recebe vários agendamentos) |
 
 ---
 
@@ -476,12 +452,12 @@ CREATE TABLE tabela_associativa (
 
 ## Seu banco possui relacionamento N:N?
 
-- [ ] Sim
-- [ x ] Não
+- [x] Sim
+- [ ] Não
 
 Se sim, explique como foi implementado:
 
-> Todos os relacionamentos planejados na Sprint 1/5 são do tipo 1:N, portanto não foi necessária nenhuma tabela associativa.
+> O relacionamento de N:N entre Cliente e Imóvel (clientes visitam vários imóveis, e imóveis recebem vários clientes) foi resolvido através da criação da tabela associativa `agendamento`, que guarda as duas chaves estrangeiras (`id_cliente` e `id_imovel`) junto com a data da visita.
 
 ---
 
@@ -515,14 +491,14 @@ ADD CONSTRAINT uq_nome UNIQUE (novo_campo);
 ## ALTER TABLE utilizado no projeto
 
 ```sql
--- ALTER TABLE incidentes
--- ADD COLUMN observacoes TEXT;
+ALTER TABLE cliente
+ADD COLUMN data_nascimento DATE;
 
 ```
 
 ### Explique a alteração
 
-> Foi adicionado o campo observacoes à tabela incidentes para permitir o registro de anotações livres do analista sobre o andamento do caso — informação que não havia sido prevista na Sprint 1/5, mas que se mostrou útil durante a implementação.
+> Adicionei a coluna data_nascimento do tipo DATE na tabela cliente, que não havia sido prevista inicialmente, para permitir a segmentação do perfil dos clientes por idade no futuro.
 
 ---
 
@@ -547,11 +523,11 @@ DROP TABLE tabela_teste;
 ## Código executado
 
 ```sql
--- CREATE TABLE tabela_teste (
---    id_teste INT PRIMARY KEY
---);
+CREATE TABLE tabela_teste (
+    id_teste INT PRIMARY KEY
+);
 
---DROP TABLE tabela_teste;
+DROP TABLE tabela_teste;
 
 ```
 
@@ -569,7 +545,7 @@ e:
 DROP TABLE tabela;
 ```
 
-> DELETE FROM tabela; remove apenas os registros (linhas) armazenados na tabela, mas mantém a estrutura (colunas, chaves, restrições) intacta, a tabela continua existindo, apenas vazia. Já DROP TABLE tabela; remove a tabela inteira, incluindo sua estrutura, dados e restrições; depois desse comando, a tabela deixa de existir no banco.
+> `DELETE FROM tabela;` apaga apenas os dados (linhas de registros) guardados dentro da tabela, mas a estrutura (colunas e regras) continua existindo no banco. Já o `DROP TABLE tabela;` apaga a tabela inteira do banco de dados, excluindo sua estrutura, configurações e todos os dados nela contidos de forma definitiva.
 
 ---
 
@@ -587,53 +563,48 @@ Adapte tudo ao tema escolhido na Sprint 1/5.
 -- MODELO GENÉRICO DE BANCO RELACIONAL
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+CREATE DATABASE nome_do_banco;
 
-USE gerenciamento_incidentes;
+USE nome_do_banco;
 
 -- ------------------------------------------------------------
--- TABELA 1 — ANALISTAS (independente)
+-- TABELA 1 — independente
 -- ------------------------------------------------------------
 
-CREATE TABLE analistas (
-id_analista INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(100) NOT NULL,
-email VARCHAR(150) NOT NULL UNIQUE,
-cargo VARCHAR(100)
+CREATE TABLE tabela_a (
+    id_a INT PRIMARY KEY AUTO_INCREMENT,
+    campo_a1 VARCHAR(100) NOT NULL,
+    campo_a2 VARCHAR(150) UNIQUE,
+    campo_a3 DATE
 );
 
 -- ------------------------------------------------------------
--- TABELA 2 — DISPOSITIVOS (independente)
+-- TABELA 2 — independente
 -- ------------------------------------------------------------
 
-CREATE TABLE dispositivos (
-id_dispositivo INT PRIMARY KEY AUTO_INCREMENT,
-nome_dispositivo VARCHAR(100) NOT NULL,
-tipo_dispositivo VARCHAR(50) NOT NULL,
-ip_address VARCHAR(45) NOT NULL UNIQUE,
-ativo BOOLEAN NOT NULL DEFAULT TRUE
+CREATE TABLE tabela_b (
+    id_b INT PRIMARY KEY AUTO_INCREMENT,
+    campo_b1 VARCHAR(100) NOT NULL,
+    campo_b2 DECIMAL(10,2) NOT NULL,
+    campo_b3 BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ------------------------------------------------------------
--- TABELA 3 — ALERTAS (depende de DISPOSITIVOS)
+-- TABELA 3 — relacionada à tabela_a
 -- ------------------------------------------------------------
 
-CREATE TABLE alertas (
-id_alerta INT PRIMARY KEY AUTO_INCREMENT,
-titulo VARCHAR(100) NOT NULL UNIQUE,
-descricao TEXT,
-data_alerta DATETIME NOT NULL,
-status VARCHAR(30) NOT NULL DEFAULT 'Novo',
-id_dispositivo INT NOT NULL,
+CREATE TABLE tabela_c (
+    id_c INT PRIMARY KEY AUTO_INCREMENT,
+    id_a INT NOT NULL,
+    campo_c1 DATE NOT NULL,
 
-CONSTRAINT fk_alertas_dispositivos
-        FOREIGN KEY (id_dispositivo)
-        REFERENCES dispositivos(id_dispositivo)
-
+    CONSTRAINT fk_tabela_c_tabela_a
+        FOREIGN KEY (id_a)
+        REFERENCES tabela_a(id_a)
 );
 
 -- ------------------------------------------------------------
--- TABELA 4 — exemplo de tabela associativa -NÃO EXISTE
+-- TABELA 4 — exemplo de tabela associativa
 -- ------------------------------------------------------------
 
 CREATE TABLE tabela_d (
@@ -656,8 +627,8 @@ CREATE TABLE tabela_d (
 -- ALTER TABLE
 -- ------------------------------------------------------------
 
-ALTER TABLE incidentes
-ADD COLUMN observacoes TEXT;
+ALTER TABLE tabela_a
+ADD COLUMN campo_novo VARCHAR(100);
 
 -- ------------------------------------------------------------
 -- TABELA TEMPORÁRIA PARA PRATICAR DROP TABLE
@@ -666,7 +637,7 @@ ADD COLUMN observacoes TEXT;
 CREATE TABLE tabela_teste (
     id_teste INT PRIMARY KEY
 );
- 
+
 DROP TABLE tabela_teste;
 ```
 
@@ -745,13 +716,10 @@ Faça isso para cada tabela criada.
 
 | Tabela | `DESCRIBE` executado? | Estrutura correta? |
 |---|---|---|
-| analistas | Sim | Sim |
-| dispositivos | Sim | Sim |
-| tipos_ameacas | Sim | Sim |
-| alertas | Sim | Sim |
-| incidentes | Sim | Sim |
-| acoes_resposta | Sim| Sim |
-
+| corretor | Sim | Sim |
+| cliente | Sim | Sim |
+| imovel | Sim | Sim |
+| agendamento | Sim | Sim |
 
 ---
 
@@ -840,9 +808,8 @@ Verifique:
 
 | Problema | Causa identificada | Como foi resolvido |
 |---|---|---|
-| Erro de sintaxe ao criar analistas | O tipo INT(100) planejado na Sprint 1/5 não é válido para uma chave primária simples | Substituído por INT |
-| Erro de FOREIGN KEY em incidentes | A tabela alertas ainda não existia no momento da tentativa de criar incidentes | Ajustada a ordem de criação: alertas passou a ser criada antes de incidentes |
-
+| Botão de raio (executar) indisponível no Workbench | Arquivo aberto sem estar vinculado a uma conexão ativa com o servidor MySQL. | Solução teórica: criar uma nova Query Tab com a conexão ativa e colar o código. |
+| Senha do banco de dados local desconhecida | Configuração de ambiente/senha padrão do MySQL não documentada. | Optamos por focar na estruturação do DDL e no preenchimento da documentação. |
 
 Caso não encontre problemas:
 

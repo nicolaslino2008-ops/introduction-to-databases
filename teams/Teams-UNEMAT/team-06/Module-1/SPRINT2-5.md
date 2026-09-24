@@ -132,9 +132,38 @@ USE loja_virtual;
 ## Código utilizado no seu projeto
 
 ```sql
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+CREATE DATABASE IF NOT EXISTS db_conveniencia;
+USE db_conveniencia;
+  
+CREATE TABLE Categoria(
+id_categoria INT PRIMARY KEY auto_increment,
+nome_categoria VARCHAR(50) NOT NULL
+);
 
-USE gerenciamento_incidentes;
+CREATE TABLE Produto(
+id_produto INT PRIMARY KEY auto_increment,
+id_categoria INT,
+codigo_barras VARCHAR(50) UNIQUE,
+nome_produto VARCHAR(100) NOT NULL,
+preco_venda DECIMAL(10,2) CHECK (preco_venda >= 0),
+quantidade_estoque INT CHECK (quantidade_estoque >=0),
+FOREIGN KEY (id_categoria) references Categoria(id_categoria)
+);
+
+CREATE TABLE Venda(
+id_venda INT auto_increment PRIMARY KEY,
+data_venda DATETIME DEFAULT current_timestamp,
+valor_total DECIMAL(10,2)
+);
+
+CREATE TABLE Item_venda(
+quantidade int,
+id_venda INT,
+id_produto int,
+PRIMARY KEY (id_venda, id_produto),
+FOREIGN KEY (id_venda) REFERENCES Venda(id_venda),
+FOREIGN KEY (id_produto) REFERENCES Produto(id_produto)
+);
 
 ```
 
@@ -142,10 +171,8 @@ USE gerenciamento_incidentes;
 
 ```text
 
-gerenciamento_incidentes;
-
 ```
-
+db_conveniencia
 ---
 
 # 4. Tipos de dados
@@ -214,12 +241,12 @@ CREATE TABLE nome_tabela (
 
 | Nº | Nome da tabela | Finalidade |
 |---:|---|---|
-| 1 | analistas  | Armazena os profissionais responsáveis pelos incidentes |
-| 2 | dispositivos  | Armazena computadores, servidores e equipamentos monitorados |
-| 3 | tipos_ameacas | Armazena as classificações de ameaças |
-| 4 | alertas | Armazena os alertas de segurança gerados pelos dispositivos |
-| 5 | incidentes | Armazena os incidentes de segurança identificados |
-| 6 | acoes_resposta | Armazena as ações realizadas durante o tratamento de um incidente |
+| 1 | Categoria | Armezenar o Nome da categoria e também o ID da categoria |
+| 2 | Produto | Armazenar o Id do produto, Id da categoria o codigo de barras, o nome do produto, a quantidade do estoque e o preco da venda |
+| 3 | Venda | Vai guardar o ID da venda, a data da venda e o Valor total da venda |
+| 4 | Item_venda | vai Armazenar a quantidade de itens, o id da venda e o id do produto |
+| 5 |  |  |
+| 6 |  |  |
 
 ---
 
@@ -250,12 +277,12 @@ Se `PEDIDO` possui uma FK para `CLIENTE`, então `CLIENTE` deve existir antes de
 
 ## Ordem definida para o seu projeto
 
-1. analistas (independente)
-2. dispositivos (independente)
-3. tipos_ameacas (independente)
-4. alertas (depende de dispositivos)
-5. incidentes (depende de analistas, dispositivos, tipos_ameacas e alertas)
-6. acoes_resposta (depende de incidentes)
+1. Categoria
+2. Produto
+3. Venda
+4. Item_venda
+5. 
+6. 
 
 ---
 
@@ -279,12 +306,10 @@ id_cliente INT PRIMARY KEY AUTO_INCREMENT
 
 | Tabela | Chave primária | Utiliza `AUTO_INCREMENT`? |
 |---|---|---|
-|analistas  | id_analista | Sim |
-| dispositivos | id_dispositivo | Sim |
-| tipos_ameacas | id_ameaca | Sim |
-| alertas | id_alerta | Sim |
-| incidentes | id_incidente | Sim |
-| acoes_resposta | id_acao | Sim |
+| Categoria | id_categoria | Sim |
+| Produto | id_produto | Sim |
+| Venda | id_venda | Sim |
+|  |  |  |
 
 ---
 
@@ -304,11 +329,9 @@ Não utilize `NOT NULL` indiscriminadamente. A restrição deve refletir uma reg
 
 | Tabela | Campo | Por que é obrigatório? |
 |---|---|---|
-| analistas | nome, email | Todo analista precisa ser identificável e contatável |
-| dispositivos | nome_dispositivo, tipo_dispositivo, ip_address | São necessários para identificar o equipamento monitorado |
-| incidentes | titulo, descricao, severidade, status | Definidos como obrigatórios pela regra de negócio 1 da Sprint 1/5 |
-| alertas |titulo, status  | Todo alerta precisa ter um identificador textual e uma situação|
-| acoes_resposta  | descricao, id_incidente | Toda ação precisa de uma descrição e estar vinculada a um incidente |
+| Categoria | nome_categoria | Pelo fato de carregar o nome da categoria, isso e importante pra idetificação |
+| Produto | nome_produto | Mesma razão do nome da categoria, por carregar o nome do produto e é importante pra identifição |
+|  |  |  |
 
 ---
 
@@ -332,8 +355,8 @@ cpf CHAR(11) NOT NULL UNIQUE
 
 | Tabela | Campo | Por que não pode se repetir? |
 |---|---|---|
-| analistas | email | Evita analistas duplicados com o mesmo e-mail |
-| dispositivos | ip_address | Evita dispositivos duplicados com o mesmo IP  |
+| Produto | codigo_barras | por ser um codigo unico destinado ao produto pelo fornecedor |
+|  |  |  |
 
 Caso nenhuma seja necessária, justifique:
 
@@ -361,14 +384,8 @@ status VARCHAR(20) NOT NULL DEFAULT 'ATIVO'
 
 | Tabela | Campo | DEFAULT | Justificativa |
 |---|---|---|---|
-| dispositivos | ativo | TRUE | Um dispositivo cadastrado é considerado ativo até que se informe o contrário |
-| alertas | status | ABERTO |  Todo alerta recém-gerado começa como aberto|
-| alertas | data_alerta | 'ABERTO' | Registra automaticamente o momento em que o alerta foi criado |
-| incidentes | status | 'ABERTO' | Reflete a regra de negócio 2 da Sprint 1/5 (status inicial do incidente) |
-| incidentes | data_identificacao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que o incidente foi identificado |
-| acoes_resposta | data_acao | CURRENT_TIMESTAMP | Registra automaticamente o momento em que a ação foi executada |
-
-
+| Venda | data_venda | DATETIME DEFAULT | Ele vai pegar o horario atual do computador, então usar default eu já deixo claro que ele sempre vai tentar pegar o horario padrão da maquina |
+|  |  |  |  |
 
 Caso não utilize `DEFAULT`, justifique:
 
@@ -421,13 +438,9 @@ Verifique se:
 
 | Tabela | Campo FK | Referencia | Relacionamento |
 |---|---|---|---|
-| alertas | id_dispositivo | dispositivos | Um dispositivo pode gerar vários alertas |
-| incidentes | id_analista | analistas | Um analista pode acompanhar vários incidentes |
-|incidentes  | id_dispositivo | dispositivos | Um dispositivo pode estar relacionado a vários incidentes |
-|incidentes  | id_ameaca | tipos_ameacas | Um tipo de ameaça pode classificar vários incidentes |
-| incidentes | id_alerta | alertas | Um alerta pode dar origem a um incidente |
-| acoes_resposta | id_incidente |incidentes  | Um incidente pode possuir várias ações de resposta |
-
+| Produto |FOREIGN KEY (id_categoria)| references Categoria(id_categoria) | 1:N Uma categoria possui varios produtos |
+| item_venda | FOREIGN KEY (id_venda) | REFERENCES Venda(id_venda) | 1:N uma venda pode conter varios itens |
+| item_venda | FOREIGN KEY (id_produto) | REFERENCES Produto(id_produto) | 1:N um produto aparece em varias vendas |
 
 ---
 
@@ -476,12 +489,12 @@ CREATE TABLE tabela_associativa (
 
 ## Seu banco possui relacionamento N:N?
 
-- [ ] Sim
-- [ x ] Não
+- [X] Sim
+- [ ] Não
 
 Se sim, explique como foi implementado:
 
-> Todos os relacionamentos planejados na Sprint 1/5 são do tipo 1:N, portanto não foi necessária nenhuma tabela associativa.
+> Teoricamente o relacionamento N:N seria da bomba da venda pro produto, mas deu pra resolver isso criando a tabela item_venda pra não precisar ficar se preocupando com isso
 
 ---
 
@@ -515,14 +528,14 @@ ADD CONSTRAINT uq_nome UNIQUE (novo_campo);
 ## ALTER TABLE utilizado no projeto
 
 ```sql
--- ALTER TABLE incidentes
--- ADD COLUMN observacoes TEXT;
+ALTER TABLE categoria 
+ADD COLUMN meu_pedido VARCHAR(100);
 
 ```
 
 ### Explique a alteração
 
-> Foi adicionado o campo observacoes à tabela incidentes para permitir o registro de anotações livres do analista sobre o andamento do caso — informação que não havia sido prevista na Sprint 1/5, mas que se mostrou útil durante a implementação.
+> Fiz essa mudança rapida para demonstrar que meu comando foi executado com clareza no ALTER TABLE, mas que por enquanto no comando final ele não vai existir por não ter necessidade
 
 ---
 
@@ -547,11 +560,8 @@ DROP TABLE tabela_teste;
 ## Código executado
 
 ```sql
--- CREATE TABLE tabela_teste (
---    id_teste INT PRIMARY KEY
---);
-
---DROP TABLE tabela_teste;
+DROP TABLE item_venda;
+19:51:18	DROP TABLE item_venda	0 row(s) affected	0.016 sec
 
 ```
 
@@ -569,7 +579,7 @@ e:
 DROP TABLE tabela;
 ```
 
-> DELETE FROM tabela; remove apenas os registros (linhas) armazenados na tabela, mas mantém a estrutura (colunas, chaves, restrições) intacta, a tabela continua existindo, apenas vazia. Já DROP TABLE tabela; remove a tabela inteira, incluindo sua estrutura, dados e restrições; depois desse comando, a tabela deixa de existir no banco.
+> O DELETE FROM você tá tentando arrancar algum parametro que existe na tabela que você está entrando, agora no DROP TABLE você está arrancando totalmente a tabela e todos os seus parametros, então tem essa diferença: Num você vai tirar apenas um parametro e no outro você vai tirar a tabela toda.
 
 ---
 
@@ -584,90 +594,74 @@ Adapte tudo ao tema escolhido na Sprint 1/5.
 ```sql
 -- ============================================================
 -- SPRINT 2/5
--- MODELO GENÉRICO DE BANCO RELACIONAL
+-- MODELO Vendas e Produtos (Loja de Conveniência).
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS gerenciamento_incidentes;
+CREATE DATABASE db_conveniencia;
 
-USE gerenciamento_incidentes;
+USE db_conveniencia;
 
 -- ------------------------------------------------------------
--- TABELA 1 — ANALISTAS (independente)
+-- TABELA 1 — Categoria
 -- ------------------------------------------------------------
 
-CREATE TABLE analistas (
-id_analista INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(100) NOT NULL,
-email VARCHAR(150) NOT NULL UNIQUE,
-cargo VARCHAR(100)
+CREATE TABLE Categoria (
+     id_categoria INT PRIMARY KEY auto_increment,
+    nome_categoria VARCHAR(50) NOT NULL
 );
 
 -- ------------------------------------------------------------
--- TABELA 2 — DISPOSITIVOS (independente)
+-- TABELA 2 — Produto
 -- ------------------------------------------------------------
 
-CREATE TABLE dispositivos (
-id_dispositivo INT PRIMARY KEY AUTO_INCREMENT,
-nome_dispositivo VARCHAR(100) NOT NULL,
-tipo_dispositivo VARCHAR(50) NOT NULL,
-ip_address VARCHAR(45) NOT NULL UNIQUE,
-ativo BOOLEAN NOT NULL DEFAULT TRUE
+CREATE TABLE Produto (
+      id_produto INT PRIMARY KEY auto_increment,
+      id_categoria INT,
+      codigo_barras VARCHAR(50) UNIQUE,
+      nome_produto VARCHAR(100) NOT NULL,
+      preco_venda DECIMAL(10,2) CHECK (preco_venda >= 0),
+      quantidade_estoque INT CHECK (quantidade_estoque >=0),
+      FOREIGN KEY (id_categoria) references Categoria(id_categoria)
 );
 
 -- ------------------------------------------------------------
--- TABELA 3 — ALERTAS (depende de DISPOSITIVOS)
+-- TABELA 3 — Venda
 -- ------------------------------------------------------------
-
-CREATE TABLE alertas (
-id_alerta INT PRIMARY KEY AUTO_INCREMENT,
-titulo VARCHAR(100) NOT NULL UNIQUE,
-descricao TEXT,
-data_alerta DATETIME NOT NULL,
-status VARCHAR(30) NOT NULL DEFAULT 'Novo',
-id_dispositivo INT NOT NULL,
-
-CONSTRAINT fk_alertas_dispositivos
-        FOREIGN KEY (id_dispositivo)
-        REFERENCES dispositivos(id_dispositivo)
-
+   CREATE TABLE Venda(
+    id_venda INT auto_increment PRIMARY KEY,
+    data_venda DATETIME DEFAULT current_timestamp,
+    valor_total DECIMAL(10,2)
 );
 
 -- ------------------------------------------------------------
--- TABELA 4 — exemplo de tabela associativa -NÃO EXISTE
+-- TABELA 4 — Item_venda
 -- ------------------------------------------------------------
-
-CREATE TABLE tabela_d (
-    id_c INT NOT NULL,
-    id_b INT NOT NULL,
-    quantidade INT NOT NULL,
-
-    PRIMARY KEY (id_c, id_b),
-
-    CONSTRAINT fk_tabela_d_tabela_c
-        FOREIGN KEY (id_c)
-        REFERENCES tabela_c(id_c),
-
-    CONSTRAINT fk_tabela_d_tabela_b
-        FOREIGN KEY (id_b)
-        REFERENCES tabela_b(id_b)
+      CREATE TABLE Item_venda(
+      quantidade int,
+      id_venda INT,
+      id_produto int,
+      PRIMARY KEY (id_venda, id_produto),
+      FOREIGN KEY (id_venda) REFERENCES Venda(id_venda),
+      FOREIGN KEY (id_produto) REFERENCES Produto(id_produto)
 );
 
 -- ------------------------------------------------------------
 -- ALTER TABLE
 -- ------------------------------------------------------------
 
-ALTER TABLE incidentes
-ADD COLUMN observacoes TEXT;
+ALTER TABLE categoria 
+ADD COLUMN meu_pedido VARCHAR(100);
 
 -- ------------------------------------------------------------
 -- TABELA TEMPORÁRIA PARA PRATICAR DROP TABLE
 -- ------------------------------------------------------------
 
-CREATE TABLE tabela_teste (
-    id_teste INT PRIMARY KEY
+CREATE TABLE meus_pedidos (
+    id_meus INT PRIMARY KEY
 );
- 
-DROP TABLE tabela_teste;
+
+DROP TABLE meus_pedidos;
+
 ```
 
 ---
@@ -745,13 +739,10 @@ Faça isso para cada tabela criada.
 
 | Tabela | `DESCRIBE` executado? | Estrutura correta? |
 |---|---|---|
-| analistas | Sim | Sim |
-| dispositivos | Sim | Sim |
-| tipos_ameacas | Sim | Sim |
-| alertas | Sim | Sim |
-| incidentes | Sim | Sim |
-| acoes_resposta | Sim| Sim |
-
+| Categoria | Sim | Sim |
+| Produto | Sim | Sim |
+| Venda | Sim | Sim |
+| Item_venda | Sim | Sim |
 
 ---
 
@@ -840,9 +831,9 @@ Verifique:
 
 | Problema | Causa identificada | Como foi resolvido |
 |---|---|---|
-| Erro de sintaxe ao criar analistas | O tipo INT(100) planejado na Sprint 1/5 não é válido para uma chave primária simples | Substituído por INT |
-| Erro de FOREIGN KEY em incidentes | A tabela alertas ainda não existia no momento da tentativa de criar incidentes | Ajustada a ordem de criação: alertas passou a ser criada antes de incidentes |
-
+|  |  |  |
+|  |  |  |
+|  |  |  |
 
 Caso não encontre problemas:
 
@@ -934,11 +925,11 @@ SPRINT5-5.sql
 
 Antes de finalizar:
 
-- [x] utilizei como base a `SPRINT1-5.md`;
-- [x] criei um banco de dados;
-- [x] utilizei `USE`;
-- [x] criei pelo menos 4 tabelas relacionadas;
-- [x] todas as tabelas possuem chave primária;
+- [X] utilizei como base a `SPRINT1-5.md`;
+- [X] criei um banco de dados;
+- [X] utilizei `USE`;
+- [X] criei pelo menos 4 tabelas relacionadas;
+- [X] todas as tabelas possuem chave primária;
 - [x] utilizei tipos de dados coerentes;
 - [x] apliquei `NOT NULL` quando necessário;
 - [x] apliquei `UNIQUE` quando necessário;
@@ -953,7 +944,7 @@ Antes de finalizar:
 - [x] corrigi erros de execução;
 - [x] organizei o script final;
 - [x] salvei o script como `SPRINT2-5.sql`;
-- [x] preenchi completamente este `SPRINT2-5.md`.
+- [X] preenchi completamente este `SPRINT2-5.md`.
 
 ---
 

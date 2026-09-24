@@ -35,12 +35,12 @@ Nesta Sprint 1/5, o foco é exclusivamente o **planejamento do banco de dados**.
 
 **Nome completo:**
 
-> Vinícius Eduardo Lima de Assis.
+> Ylma Cristina Souza Lopes.
 
 **Nome escolhido para o banco de dados:**
 
-```text
-pacote_viagens
+```Clinica
+
 ```
 
 ---
@@ -73,7 +73,8 @@ Alguns exemplos:
 
 ### Tema escolhido
 
-> Viagens.
+> Escreva aqui.
+Clinica_Ser
 
 ---
 
@@ -90,8 +91,8 @@ A descrição deve responder:
 
 ### Descrição
 
-> O sistema de banco de dados de pacotes de viagens representa o contexto de organização e gestão de ofertas turísticas, solucionando o problema de centralizar informações sobre destinos, preços e serviços. Ele será utilizado por agências de turismo, que cadastrarão e administrarão os pacotes, e por clientes interessados em consultar e reservar viagens. As principais informações armazenadas serão destinos, preços, hospedagens, transportes e dados de clientes cadastrados. O sistema permitirá operações como cadastro de pacotes, consulta, reservas, atualização de informações e emissão de relatórios.
-
+>Ele é a representação de uma clinica que realiza exames radiologicos, apenas colaboradores e diretoria, Nome completo, data de nascimento, telefone, sexo, cpf e imgens.
+Pesquisa, arquivamento de imagens em jpg, laudos em pdf e agendamento.
 ---
 
 # 4. Objetivo do banco de dados
@@ -100,7 +101,9 @@ Explique qual é o principal objetivo do banco de dados proposto.
 
 ### Objetivo
 
->  O objetivo é centralizar e organizar todas as informações relacionadas às ofertas turísticas, garantindo que agências possam gerenciar seus pacotes de forma eficiente e que clientes tenham acesso rápido e confiável para consultar e reservar viagens e/ou hospedagens.
+>  Este banco de dados será responsável por armazenar e organizar os dados cadastrais básicos dos pacientes atendidos pela clinica.
+essas informações identificam de forma única cada cidadão dentro do sistema e servem como base para os demais módulos operacionais presentes, como agendamento
+exames, laudos e resultados. O cadastro de pacientes é o ponto de partida de qualquer atendimento: sem ele, nenhum outro módulo consegue vincular um serviço e uma pessoa especifica. 
 
 ---
 
@@ -112,12 +115,11 @@ Liste as principais funcionalidades ou informações que deverão ser contemplad
 
 ### O banco deverá permitir:
 
-1. Cadastro de pacotes
-2. Hospedagens
-3. Destinos
-4. Transportes
-5. Reservas
-6. Dados do Cliente
+1. Nome
+2. Telefone
+3. Data de nascimento
+4. Permição de acesso para anexo
+5. Pesquisa
 
 ---
 
@@ -151,11 +153,12 @@ Pagamento
 
 | Nº | Entidade | O que representa? |
 |---:|---|---|
-| 1 | Cliente | dados pessoais do usuário |
-| 2 | Destino  | dados do local |
-| 3 | Hospedagem | dados das acomodações |
-| 4 | Transporte | meio de deslocamento |
-
+| 1 | Paciente | Pessoa que realiza os exames |
+| 2 | Médico | Profissional responsável por solicitar ou interpretar exames|
+| 3 | Exame | Procedimento radiológico realizado |
+| 4 | Agendamento  | Registro da data e hora do exame |
+| 5 | Resultado  | Laudo e imagens gerados após o exame |
+| 6 | Convênio | Plano de saúde ou forma de pagamento |
 
 > Como referência para esta atividade, planeje **pelo menos 4 tabelas relacionadas**.
 
@@ -170,66 +173,64 @@ Para cada entidade, identifique os principais atributos que deverão ser armazen
 **Nome da entidade:**
 
 ```text
-Cliente
-```
+
+```Paciente
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
-|---|---|---|---|
-| id_cliente | Identificação única do cliente | INT | Sim |
-| nome | Nome completo do cliente | VARCHAR(100) | Sim |
-| cpf | CPF do cliente | VARCHAR(14) | Sim |
-| email | E-mail do cliente | VARCHAR(100) | Sim |
-| telefone | Número de telefone do cliente | VARCHAR(20) | Não |
+|id_paciente|Identificador único|Inteiro|Sim|
+|nome  |Nome Completo  |Texto  | Sim |
+|cpf  | Documento de identificação  |Texto  |Sim  |
+|data_nascimento  |Data de nascimento  |Data  |Sim  |
+|telefone  |Contato  |Texto  |Sim  |
+|  |  |  |  
 
 ## Entidade 2
 
 **Nome da entidade:**
 
 ```text
-Destino
-```
+
+```Médico
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_destino | Identificação única do destino | INT | Sim |
-| nome | Nome da cidade ou local | VARCHAR(100) | Sim |
-| pais | País onde o destino está localizado | VARCHAR(60) | Sim |
-| estado | Estado ou região do destino | VARCHAR(60) | Não |
-| descricao | Descrição do destino | TEXT | Não |
+|id_medico  |Identificador único  |Inteiro  | Sim  |
+|nome  |Nome completo  |Texto  |Sim  |
+|Cro  |Registro profissional  |Texto  |Sim  |
+|telefone  |Contato  |Texto  |Sim  |
+|endereço  |Endereço profissional  |Texto  |Sim  |
 
 ## Entidade 3
 
 **Nome da entidade:**
 
 ```text
-Hospedagem
-```
+
+```Exame
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_hospedagem |Identificação única da hospedagem  | INT | Sim |
-| nome | Nome do hotel ou acomodação | VARCHAR(100) | Sim |
-| endereco | Endereço da hospedagem | VARCHAR(200) | Sim |
-| tipo | Tipo de acomodação | VARCHAR(50) | Sim |
-| valor_diaria | Valor da diária | DECIMAL(10,2) | Sim |
+|id_exame  |identificador único  |Inteiro  | Sim  |
+|tipo_exame  |Tipo (Raio-X, Tomografia, Modelo,Fotos)  |Texto  |Sim  |
+|descrição  |Detalhes do exame  |Texto  |Sim  |
+|preco  |Valor do exame  |Decimal  | Sim  |
+|  |  |  |  |
 
 ## Entidade 4
 
 **Nome da entidade:**
 
 ```text
-Transporte
-```
+
+```Agendamento
 
 | Atributo | Informação armazenada | Tipo de dado previsto | Obrigatório? |
 |---|---|---|---|
-| id_transporte | Identificação única do transporte | INT | Sim |
-| tipo | Tipo de transporte utilizado | VARCHAR(50) | Sim |
-| empresa | Nome da empresa de transporte | VARCHAR(100) | Sim |
-| origem | Local de partida | VARCHAR(100) | Sim |
-| destino | Local de chegada | VARCHAR(100) | Sim |
-
-
+|id_agendamento  |Identificador único  |Inteiro  |Sim  |
+|id_paciente  |Paciente vinculado  |Inteiro(FK)  |Sim  |
+|id_exame  |Exame vinculado  |Inteiro(FK)  |Sim  |
+|data_hora  |Data e hora do exame  |Data/Hora  |Sim  |
+|id_medico  |Médico solicitante  |Inteiro(FK)  |Sim  |
 
 ## Outras entidades
 
@@ -237,8 +238,8 @@ Caso o projeto possua mais de quatro entidades, registre-as abaixo.
 
 | Entidade | Principais atributos |
 |---|---|
-|  |  |
-|  |  |
+|Resultado  |id_paciente, id_exame, laudo_texto, imagem_url, data_emissao  |
+|Convenio  |id_convenio, nome_conveno, tipo_plano, cobertura  |
 |  |  |
 
 ---
@@ -248,11 +249,13 @@ Caso o projeto possua mais de quatro entidades, registre-as abaixo.
 Cada tabela deverá possuir uma forma de identificar unicamente seus registros.
 
 | Entidade/Tabela | Chave primária prevista | Justificativa |
-|---|---|---|
-| Cliente | id_cliente | Identifica cada cliente de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Destino | id_destino | Identifica cada destino de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Hospedagem | id_hospedagem | Identifica cada hospedagem de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
-| Transporte | id_transporte | Identifica cada transporte de forma única, não poderá se repetir e será um identificador numérico com AUTO_INCREMENT |
+|Paciente|id_paciente|Identificador único, numérico, AUTO_INCREMENT para evitar duplicidade de pacientes|
+|médico  |id_medico  |Cada médico precisa de um identificador exclusivo, numérico e sequencial  |
+|Exame  |id_exame  | Garante que cada tipo de exame seja único, mesmo que nomes se repitam |
+|Agendamento  |id_agendamento  |Cada agendamento é único, precisa de chave numérica sequencial  |
+|Resultado  |id_resultado  |Cada laudo é único, vinculado a um exame específico  |
+|Convênio  |id_convenio  |Identificador único para cada plano de saúde  |
+
 
 Considere:
 
@@ -279,11 +282,11 @@ Produto aparece em Item_Pedido
 
 | Entidade A | Relacionamento | Entidade B |
 |---|---|---|
-| Cliente | escolhe | Destino |
-| Cliente | reserva | Hospedagem |
-| Cliente | utiliza | Transporte |
-| Destino | possui | Hospedagem |
-| Destino | utiliza | Transporte |
+|Paciente  |realiza  | Agendamento |
+|Agendamento  | refere-se a | Exame |
+|Médico  | solicita |Agendamento  |
+|Exame  |gera  |Resultado  |
+|Paciente  |possui  |Convênio  |
 
 ---
 
@@ -298,22 +301,22 @@ N:N  → muitos para muitos
 ```
 
 | Relacionamento | Cardinalidade prevista | Justificativa |
-|---|---|---|
-| Cliente escolhe Destino | N:N | Um cliente pode escolher vários destinos, e um mesmo destino pode ser escolhido por vários clientes |
-| Cliente reserva Hospedagem | N:N | Um cliente pode reservar várias hospedagens, e uma hospedagem pode receber reservas de vários clientes |
-| Cliente utiliza Transporte | N:N | Um cliente pode utilizar diferentes transportes, e um transporte pode ser utilizado por vários clientes |
-| Destino possui Hospedagem | 1:N | Um destino pode possuir várias hospedagens, mas cada hospedagem está localizada em um único destino |
+|Paciente → Agendamento|1:N|Um paciente pode ter vários agendamentos, mas cada agendamento pertence a um único paciente|
+|Agendamento → Exame  | 1:1  |Cada agendamento refere-se a um exame específico  |
+|Médico → Agendamento  | 1:N  | Um médico pode solicitar vários exames, mas cada agendamento tem apenas um médico solicitante |
+|Exame → Resultado  | 1:1 |Cada exame gera um resultado único  |
+|Paciente → Convênio  | N:1 | Vários pacientes podem estar vinculados ao mesmo convênio |
 
 ---
 
 # 11. Chaves estrangeiras previstas
 
 | Tabela | Atributo previsto como FK | Referencia qual tabela? |
-|---|---|---|
-| Hospedagem | id_destino | Destino |
-| Cliente | id_destino | Destino |
-| Cliente | id_hospedagem | Hospedagem |
-| Cliente | id_transporte | Transporte |
+|Agendamento|id_paciente|Paciente|
+|Agendamento  |id_exame  |Exame  |
+|Agendamento  |id_medico  |Médico  |
+|Resultado  |id_exame  |Exame  |
+|Paciente  |id_convenio  |Convênio  |
 
 > As `FOREIGN KEY` serão implementadas posteriormente. Nesta Sprint, apenas planeje os relacionamentos.
 
@@ -333,16 +336,16 @@ AUTO_INCREMENT
 ```
 
 | Tabela | Atributo | Restrição prevista | Motivo |
-|---|---|---|---|
-| Cliente | id_cliente | PRIMARY KEY, AUTO_INCREMENT | Identificar cada cliente de forma única e gerar o código automaticamente |
-| Cliente | cpf | NOT NULL, UNIQUE | O CPF é obrigatório e não pode pertencer a mais de um cliente |
-| Cliente | email | NOT NULL, UNIQUE | O e-mail é obrigatório e deve ser único para cada cliente |
-| Destino | id_destino | PRIMARY KEY, AUTO_INCREMENT | Identificar cada destino de forma única e gerar o código automaticamente |
-| Destino | nome | NOT NULL | O nome do destino é uma informação obrigatória |
-| Hospedagem | id_hospedagem | PRIMARY KEY, AUTO_INCREMENT | Identificar cada hospedagem de forma única e gerar o código automaticamente |
-| Hospedagem | valor_diaria | NOT NULL | O valor da diária é necessário para registrar o preço da hospedagem |
-| Transporte | id_transporte | PRIMARY KEY, AUTO_INCREMENT | Identificar cada transporte de forma única e gerar o código automaticamente |
-| Transporte | tipo | NOT NULL | O tipo de transporte é necessário para identificar o serviço utilizado |
+|Paciente|id_paciente|PRIMARY KEY, AUTO_INCREMENT|Identificação única de cada paciente
+|Paciente|cpf  |UNIQUE, NOT NULL  | Evitar duplicidade de cadastros |
+|Médico  |id-medico  |PRIMARY KEY, AUTO_INCREMENT  |Identificação única de cada médico  |
+|Exame  |id_exame  |PRIMARY KEY, AUTO_INCREMENT  |Cada exame precisa ser único  |
+|Exame  |preco  |NOT NULL  |Não pode existir exame sem preço  |
+|agendamento  |id_agendamento  |PRIMARY KEY, AUTO_INCREMENT  |Cada agendamento é único  |
+|Agendamento  |id_paciente, id_exame, id_medico  |FOREIGN KEY  | Garantir integridade referencial  |
+|Resultado  |id_resultado  |PRIMARY KEY, AUTO_INCREMENT  | Cada laudo é único |
+|Resultado  |id_exame  |FOREIGN KEY  |Associar resultado ao exame correto  |
+|Convênio  |id_convenio  | PRIMARY KEY, AUTO_INCREMENT |Identificação única de cada convênio  |
 
 ---
 
@@ -362,11 +365,11 @@ Um empréstimo deve possuir uma data de realização.
 
 ### Regras do seu banco
 
-1. Um cliente não pode possuir dois cadastros com o mesmo CPF.
-2. Um cliente não pode possuir dois cadastros com o mesmo e-mail.
-3. Uma hospedagem deve estar associada a um destino existente.
-4. O valor da diária de uma hospedagem deve ser maior que zero.
-5. Todo transporte cadastrado deve possuir uma empresa, uma origem e um destino informados.
+1. Um paciente não pode possuir dois cadastros com o mesmo CPF.
+2. Um agendamento deve estar associado a um paciente existente.
+3. Um exame não pode possuir preço negativo.
+4. Um resultado deve estar vinculado a um exame realizado.
+5. Um paciente pode estar associado a apenas um convênio por vez.
 
 ---
 
@@ -393,41 +396,54 @@ CLIENTE 1 ───── N PEDIDO
 ### Esboço do seu banco
 
 ```text
-CLIENTE
-├── id_cliente (PK)
+Escreva aqui a estrutura planejada.
+```PACIENTE
+├── id_paciente (PK)
 ├── nome
 ├── cpf (UNIQUE)
-├── email (UNIQUE)
+├── data_nascimento
+├── telefone
+├── endereco
+└── id_convenio (FK)
+
+MÉDICO
+├── id_medico (PK)
+├── nome
+├── crm (UNIQUE)
+├── especialidade
 └── telefone
 
-DESTINO
-├── id_destino (PK)
-├── nome
-├── pais
-├── estado
-└── descricao
+EXAME
+├── id_exame (PK)
+├── tipo_exame
+├── descricao
+└── preco
 
-HOSPEDAGEM
-├── id_hospedagem (PK)
-├── nome
-├── endereco
-├── tipo
-├── valor_diaria
-└── id_destino (FK)
+AGENDAMENTO
+├── id_agendamento (PK)
+├── id_paciente (FK)
+├── id_exame (FK)
+├── id_medico (FK)
+└── data_hora
 
-TRANSPORTE
-├── id_transporte (PK)
-├── tipo
-├── empresa
-├── origem
-└── destino
+RESULTADO
+├── id_resultado (PK)
+├── id_exame (FK)
+├── laudo_texto
+├── imagem_url
+└── data_emissao
 
+CONVÊNIO
+├── id_convenio (PK)
+├── nome_convenio
+├── tipo_plano
+└── cobertura
 
-CLIENTE N ───── N DESTINO
-CLIENTE N ───── N HOSPEDAGEM
-CLIENTE N ───── N TRANSPORTE
-DESTINO 1 ───── N HOSPEDAGEM
-```
+PACIENTE 1 ───── N AGENDAMENTO  
+MÉDICO 1 ───── N AGENDAMENTO  
+EXAME 1 ───── 1 RESULTADO  
+CONVÊNIO 1 ───── N PACIENTE
+
 
 ---
 
@@ -435,10 +451,12 @@ DESTINO 1 ───── N HOSPEDAGEM
 
 Descreva que tipos de registros deverão existir no banco quando ele for populado.
 
-1. Dados de clientes, como nome, CPF, e-mail e telefone.
-2. Dados de destinos turísticos, como cidade, país, estado e descrição.
-3. Dados de hospedagens, como nome do hotel ou acomodação, endereço, tipo e valor da diária.
-4. Dados de transportes, como tipo de transporte, empresa, origem e destino.
+1. Pacientes cadastrados com nome, CPF e convênio.
+2. Médicos com CRO e especialidade.
+3. Exames disponíveis (Raio-X, Tomografia, Modelos, Fotos).
+4. Agendamentos realizados com data e hora.
+5.Resultados com laudos e imagens anexadas.
+6.Convênios aceitos pela clínica.
 
 ---
 
@@ -458,46 +476,46 @@ Quais categorias possuem mais de 5 produtos?
 
 ### Perguntas do seu projeto
 
-1. Quais clientes estão cadastrados no sistema?
-2. Quais destinos turísticos estão cadastrados e em quais países estão localizados?
-3. Quais hospedagens estão disponíveis em cada destino?
-4. Quais são os valores das diárias das hospedagens cadastradas?
-5. Quais empresas e tipos de transporte estão cadastrados?
+1. Quais pacientes estão cadastrados na clínica?
+2. Quantos agendamentos cada médico solicitou?
+3. Qual é o convênio mais utilizado pelos pacientes?
+4. Quais exames foram realizados em determinado período?
+5. Quais resultados já foram emitidos para um paciente específico?
 
 ---
 
 # 17. Decisões e dúvidas pendentes
 
-- Nenhuma dúvida pendente nesta Sprint.
-- Nenhuma dúvida pendente nesta Sprint.
-- Nenhuma dúvida pendente nesta Sprint.
+- 
+- 
+- 
 
 Caso não existam dúvidas:
 
 > Nenhuma dúvida pendente nesta Sprint.
 
----
+---Nenhuma dúvida
 
 # 18. Checklist da Sprint 1/5
 
-- [x] identifiquei o aluno responsável;
-- [x] defini o tema do banco de dados;
-- [x] descrevi o sistema;
-- [x] defini o objetivo do banco;
-- [x] defini o escopo inicial;
-- [x] identifiquei pelo menos 4 entidades;
-- [x] planejei os principais atributos;
-- [x] defini as chaves primárias previstas;
-- [x] identifiquei os relacionamentos;
-- [x] defini as cardinalidades iniciais;
-- [x] identifiquei possíveis chaves estrangeiras;
-- [x] planejei restrições de integridade;
-- [x] defini pelo menos 5 regras de negócio;
-- [x] fiz um esboço da estrutura do banco;
-- [x] defini os tipos de dados que futuramente serão cadastrados;
-- [x] defini pelo menos 5 perguntas que o banco deverá responder;
-- [x] registrei dúvidas ou decisões pendentes;
-- [x] revisei o arquivo antes de finalizar.
+- [V] identifiquei o aluno responsável;
+- [V] defini o tema do banco de dados;
+- [V] descrevi o sistema;
+- [V] defini o objetivo do banco;
+- [V] defini o escopo inicial;
+- [V] identifiquei pelo menos 4 entidades;
+- [V] planejei os principais atributos;
+- [V] defini as chaves primárias previstas;
+- [V] identifiquei os relacionamentos;
+- [V] defini as cardinalidades iniciais;
+- [V] identifiquei possíveis chaves estrangeiras;
+- [V] planejei restrições de integridade;
+- [V] defini pelo menos 5 regras de negócio;
+- [V] fiz um esboço da estrutura do banco;
+- [V] defini os tipos de dados que futuramente serão cadastrados;
+- [V] defini pelo menos 5 perguntas que o banco deverá responder;
+- [V] registrei dúvidas ou decisões pendentes;
+- [V] revisei o arquivo antes de finalizar.
 
 ---
 
