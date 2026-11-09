@@ -7,51 +7,15 @@
 
 ---
 
-# Objetivo da Sprint 1/5
-
-Nesta primeira Sprint do **Module-2**, cada aluno deverá continuar utilizando o mesmo banco de dados desenvolvido no `Module-1`.
-
-O foco agora será a consulta de dados relacionados entre duas ou mais tabelas por meio de:
-
-```sql
-INNER JOIN
-LEFT JOIN
-RIGHT JOIN
-ON
-AS
-WHERE
-ORDER BY
-GROUP BY
-COUNT
-SUM
-AVG
-MIN
-MAX
-```
-
-Ao final da Sprint, o aluno deverá ser capaz de identificar as tabelas necessárias, reconhecer PK e FK envolvidas, construir consultas com `JOIN`, interpretar os resultados e explicar presencialmente como cada consulta funciona.
-
-> **Importante:** não crie um novo banco. Utilize o mesmo projeto desenvolvido no `Module-1`.
-
----
-
 # 1. Estrutura do repositório
-
-Os arquivos desta Sprint deverão ficar em:
 
 ```text
 teams/Teams-UNEMAT/team-XX/Module-2/
-```
-
-Ao final:
-
-```text
-Module-2/
 ├── SPRINT1-5.md
 └── SPRINT1-5.sql
 ```
 
-Não altere nem apague os arquivos do `Module-1`.
+Os arquivos do `Module-1` não foram alterados nem apagados.
 
 ---
 
@@ -59,7 +23,7 @@ Não altere nem apague os arquivos do `Module-1`.
 
 **Nome completo:**
 
-> Escreva aqui.
+> NICOLAS LINO OLIVEIRA
 
 **Branch:**
 
@@ -70,26 +34,28 @@ team-XX
 **Nome do banco:**
 
 ```text
-
+banco_imobiliaria
 ```
 
 **Tema do projeto:**
 
-> Escreva aqui.
+> Gestão de Imobiliária (Corretores de Imóveis)
 
 ---
 
 # 3. Retomada do banco
 
-Liste as principais tabelas que serão utilizadas.
+Foi utilizado o mesmo banco do Module-1, sem criar um novo.
 
 | Nº | Tabela | PK | Principais FKs |
 |---:|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | corretores | id_corretor | — |
+| 2 | clientes | id_cliente | — |
+| 3 | imoveis | id_imovel | — |
+| 4 | gestoes | id_gestao | id_imovel, id_corretor |
+| 5 | visitas | id_visita | id_cliente, id_imovel |
+| 6 | propostas | id_proposta | id_cliente, id_imovel |
+| 7 | contratos | id_contrato | id_imovel, id_cliente, id_corretor |
 
 ---
 
@@ -97,135 +63,189 @@ Liste as principais tabelas que serão utilizadas.
 
 | Tabela A | Cardinalidade | Tabela B | FK utilizada |
 |---|---|---|---|
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
+| clientes | 1:N | visitas | visitas.id_cliente |
+| imoveis | 1:N | visitas | visitas.id_imovel |
+| clientes | 1:N | propostas | propostas.id_cliente |
+| imoveis | 1:N | propostas | propostas.id_imovel |
+| corretores | 1:N | gestoes | gestoes.id_corretor |
+| imoveis | 1:N | gestoes | gestoes.id_imovel |
+| corretores | 1:N | contratos | contratos.id_corretor |
 
 ---
 
 # 5. INNER JOIN
 
-O `INNER JOIN` retorna registros que possuem correspondência nas tabelas relacionadas.
-
-Exemplo genérico:
-
-```sql
-SELECT
-    a.campo,
-    b.campo
-FROM tabela_a AS a
-INNER JOIN tabela_b AS b
-    ON a.id = b.id_a;
-```
+O `INNER JOIN` retorna apenas os registros que possuem correspondência nas duas tabelas.
 
 ## Consulta INNER JOIN 1
 
 **Pergunta em linguagem natural:**
 
-> Escreva aqui.
+> Quais visitas foram agendadas e qual é o nome do cliente de cada uma?
 
 **Tabelas utilizadas:**
 
 ```text
-
+visitas, clientes
 ```
 
 **PK/FK utilizadas:**
 
 ```text
-
+PK: clientes.id_cliente
+FK: visitas.id_cliente
 ```
 
 **SQL:**
 
 ```sql
--- Cole aqui.
+SELECT
+    v.id_visita,
+    c.nome AS cliente,
+    v.data_visita,
+    v.status AS status_visita
+FROM visitas AS v
+INNER JOIN clientes AS c
+    ON v.id_cliente = c.id_cliente
+ORDER BY v.data_visita ASC;
 ```
 
 **Explique o resultado:**
 
-> Escreva aqui.
+> Retorna uma linha para cada visita, trocando o número do cliente pelo nome dele. Clientes sem nenhuma visita (como Larissa Montenegro) não aparecem, pois o INNER JOIN só mostra quem tem par nas duas tabelas.
 
 ## Consulta INNER JOIN 2
 
 **Pergunta:**
 
-> Escreva aqui.
+> Quais propostas foram feitas, para qual imóvel e qual a diferença entre o preço anunciado e o valor proposto?
 
 ```sql
--- Cole aqui.
+SELECT
+    p.id_proposta,
+    i.endereco,
+    i.preco AS preco_anunciado,
+    p.valor_proposto,
+    i.preco - p.valor_proposto AS diferenca,
+    p.status AS status_proposta
+FROM propostas AS p
+INNER JOIN imoveis AS i
+    ON p.id_imovel = i.id_imovel
+ORDER BY p.id_proposta ASC;
 ```
 
 **Explique:**
 
-> Escreva aqui.
+> Liga cada proposta ao imóvel pela FK `propostas.id_imovel`. A coluna `diferenca` é uma expressão que mostra quanto o cliente ofereceu abaixo do preço anunciado. Imóveis sem proposta não aparecem.
 
 ---
 
 # 6. LEFT JOIN
 
-O `LEFT JOIN` mantém todos os registros da tabela à esquerda, mesmo quando não existe correspondência na tabela da direita.
+O `LEFT JOIN` mantém todos os registros da tabela da esquerda, mesmo sem correspondência na direita (as colunas da direita vêm como `NULL`).
 
 ## Consulta obrigatória
 
 **Pergunta:**
 
-> Escreva aqui.
+> Quais são todos os clientes, com suas visitas, incluindo os que ainda não fizeram nenhuma visita?
 
 ```sql
--- Cole aqui.
+SELECT
+    c.id_cliente,
+    c.nome AS cliente,
+    v.data_visita,
+    v.status AS status_visita
+FROM clientes AS c
+LEFT JOIN visitas AS v
+    ON c.id_cliente = v.id_cliente
+ORDER BY c.id_cliente ASC;
 ```
 
 **O que o LEFT JOIN permite visualizar neste caso?**
 
-> Escreva aqui.
+> Permite ver os clientes que não têm visita. Larissa Montenegro aparece com `NULL` em `data_visita` e `status_visita`. Com `WHERE v.id_visita IS NULL` (variação no `.sql`), a consulta mostra apenas os clientes que nunca visitaram um imóvel, útil para a equipe de vendas entrar em contato.
 
 ---
 
 # 7. RIGHT JOIN
 
-O `RIGHT JOIN` mantém todos os registros da tabela da direita, mesmo quando não existe correspondência na tabela da esquerda.
+O `RIGHT JOIN` mantém todos os registros da tabela da direita, mesmo sem correspondência na esquerda.
 
 ## Consulta obrigatória
 
 **Pergunta:**
 
-> Escreva aqui.
+> Quais são todos os imóveis e suas propostas, incluindo os imóveis que nunca receberam proposta?
 
 ```sql
--- Cole aqui.
+SELECT
+    i.id_imovel,
+    i.endereco,
+    i.status AS status_imovel,
+    p.valor_proposto,
+    p.status AS status_proposta
+FROM propostas AS p
+RIGHT JOIN imoveis AS i
+    ON p.id_imovel = i.id_imovel
+ORDER BY i.id_imovel ASC;
 ```
 
 **Explique o resultado:**
 
-> Escreva aqui.
+> A tabela da direita é `imoveis`, então todos os 6 imóveis aparecem. Os imóveis 4 e 5 não receberam proposta e ficam com `NULL` em `valor_proposto` e `status_proposta`. É o mesmo resultado de um `LEFT JOIN` com as tabelas em ordem trocada.
 
 ---
 
 # 8. JOIN com três ou mais tabelas
 
-Crie duas consultas envolvendo pelo menos três tabelas.
-
 ## Consulta 1
 
 **Pergunta:**
 
-> Escreva aqui.
+> Qual cliente visitou qual imóvel, em que data e com qual situação?
 
 ```sql
--- Cole aqui.
+SELECT
+    c.nome AS cliente,
+    i.endereco,
+    i.tipo,
+    v.data_visita,
+    v.status AS status_visita
+FROM visitas AS v
+INNER JOIN clientes AS c
+    ON v.id_cliente = c.id_cliente
+INNER JOIN imoveis AS i
+    ON v.id_imovel = i.id_imovel
+ORDER BY v.data_visita ASC;
 ```
+
+> `visitas` é a tabela central: ela guarda as duas FKs, uma para `clientes` e outra para `imoveis`.
 
 ## Consulta 2
 
 **Pergunta:**
 
-> Escreva aqui.
+> Qual corretor é responsável atualmente (gestão ativa) por cada imóvel?
 
 ```sql
--- Cole aqui.
+SELECT
+    i.id_imovel,
+    i.endereco,
+    i.status AS status_imovel,
+    cor.nome AS corretor_responsavel,
+    cor.creci,
+    g.data_inicio
+FROM imoveis AS i
+INNER JOIN gestoes AS g
+    ON i.id_imovel = g.id_imovel
+INNER JOIN corretores AS cor
+    ON g.id_corretor = cor.id_corretor
+WHERE g.data_fim IS NULL
+ORDER BY i.id_imovel ASC;
 ```
+
+> `gestoes` liga imóveis a corretores. O filtro `data_fim IS NULL` garante só a gestão ativa, conforme a regra de negócio da Sprint 1 do Module-1.
 
 ---
 
@@ -233,15 +253,23 @@ Crie duas consultas envolvendo pelo menos três tabelas.
 
 **Pergunta:**
 
-> Escreva aqui.
+> Quais clientes têm propostas ainda 'em análise' e de quanto é cada oferta?
 
 ```sql
--- Cole aqui.
+SELECT
+    c.nome AS cliente,
+    c.contato,
+    p.valor_proposto,
+    p.data_proposta
+FROM propostas AS p
+INNER JOIN clientes AS c
+    ON p.id_cliente = c.id_cliente
+WHERE p.status = 'em análise';
 ```
 
 **Explique o filtro:**
 
-> Escreva aqui.
+> O JOIN liga a proposta ao cliente, e o `WHERE` descarta as propostas aceitas ou recusadas. Restam as negociações em aberto, com o contato do cliente.
 
 ---
 
@@ -249,47 +277,57 @@ Crie duas consultas envolvendo pelo menos três tabelas.
 
 **Pergunta:**
 
-> Escreva aqui.
+> Quais visitas ocorreram em cada imóvel, da mais recente para a mais antiga?
 
 ```sql
--- Cole aqui.
+SELECT
+    v.data_visita,
+    i.endereco,
+    i.tipo,
+    v.status AS status_visita
+FROM visitas AS v
+INNER JOIN imoveis AS i
+    ON v.id_imovel = i.id_imovel
+ORDER BY v.data_visita DESC;
 ```
 
 ---
 
 # 11. JOIN + GROUP BY + agregação
 
-Crie uma consulta que combine tabelas e utilize ao menos uma função de agregação.
-
 **Pergunta:**
 
-> Escreva aqui.
+> Quantas visitas cada cliente já fez (incluindo quem não fez nenhuma)?
 
 ```sql
--- Cole aqui.
+SELECT
+    c.id_cliente,
+    c.nome AS cliente,
+    COUNT(v.id_visita) AS total_visitas
+FROM clientes AS c
+LEFT JOIN visitas AS v
+    ON c.id_cliente = v.id_cliente
+GROUP BY c.id_cliente, c.nome
+ORDER BY total_visitas DESC, c.nome ASC;
 ```
 
 **Explique o agrupamento:**
 
-> Escreva aqui.
+> O `GROUP BY` forma um grupo por cliente, e o `COUNT(v.id_visita)` conta quantas visitas existem em cada grupo. Foi usado `COUNT(v.id_visita)` e não `COUNT(*)`, porque o `COUNT(*)` contaria 1 linha para o cliente sem visita (a linha com `NULL` do LEFT JOIN) e mostraria um resultado errado. Esta consulta responde à pergunta 2 da Sprint 1 do Module-1.
 
 ---
 
 # 12. Quantidade mínima exigida
 
-O `SPRINT1-5.sql` deverá conter, no mínimo:
-
-```text
-2 INNER JOIN
-1 LEFT JOIN
-1 RIGHT JOIN
-2 consultas envolvendo 3 ou mais tabelas
-1 JOIN + WHERE
-1 JOIN + ORDER BY
-1 JOIN + GROUP BY + agregação
-```
-
-As consultas devem responder perguntas reais sobre o banco.
+| Exigência | Atendida em |
+|---|---|
+| 2 INNER JOIN | itens 5 (consultas 1 e 2) |
+| 1 LEFT JOIN | item 6 |
+| 1 RIGHT JOIN | item 7 |
+| 2 consultas com 3+ tabelas | item 8 (consultas 1 e 2) |
+| 1 JOIN + WHERE | item 9 |
+| 1 JOIN + ORDER BY | item 10 |
+| 1 JOIN + GROUP BY + agregação | item 11 |
 
 ---
 
@@ -297,35 +335,50 @@ As consultas devem responder perguntas reais sobre o banco.
 
 **Pergunta:**
 
-> Escreva aqui.
+> Quantos contratos cada corretor fechou, qual o total vendido e quanto ele recebe de comissão?
 
 ```sql
--- Cole aqui.
+SELECT
+    cor.nome AS corretor,
+    cor.creci,
+    cor.comissao_percentual,
+    COUNT(ct.id_contrato) AS contratos_fechados,
+    COALESCE(SUM(ct.valor_final), 0) AS total_vendido,
+    COALESCE(SUM(ct.valor_final * cor.comissao_percentual / 100), 0) AS comissao_total
+FROM corretores AS cor
+LEFT JOIN contratos AS ct
+    ON cor.id_corretor = ct.id_corretor
+GROUP BY cor.id_corretor, cor.nome, cor.creci, cor.comissao_percentual
+ORDER BY comissao_total DESC, cor.nome ASC;
 ```
 
 **Por que ela é útil?**
 
-> Escreva aqui.
+> Faz parte dos relatórios previstos desde a Sprint 1 do Module-1 (comissões por corretor). A gestora vê quem mais vende e quanto pagar de comissão. O `LEFT JOIN` mantém corretores que ainda não fecharam contrato, e o `COALESCE` mostra 0 no lugar de `NULL`.
 
 ---
 
 # 14. Validação prática obrigatória
 
-Escolha uma consulta produzida nesta Sprint.
+Consulta escolhida: **INNER JOIN 1** (visitas + clientes).
 
 ```sql
--- Cole aqui.
+SELECT
+    v.id_visita,
+    c.nome AS cliente,
+    v.data_visita,
+    v.status AS status_visita
+FROM visitas AS v
+INNER JOIN clientes AS c
+    ON v.id_cliente = c.id_cliente
+ORDER BY v.data_visita ASC;
 ```
 
-Explique:
-
-1. quais tabelas participam;
-2. qual PK está sendo utilizada;
-3. qual FK está sendo utilizada;
-4. o que a cláusula `ON` faz;
-5. o que ocorreria se a condição de relacionamento estivesse errada.
-
-> Escreva aqui.
+1. **Tabelas que participam:** `visitas` e `clientes`.
+2. **PK utilizada:** `clientes.id_cliente`.
+3. **FK utilizada:** `visitas.id_cliente`.
+4. **O que o `ON` faz:** define a regra de ligação. Cada visita é emparelhada com o cliente cujo `id_cliente` é igual ao `id_cliente` guardado na visita.
+5. **Se a condição estivesse errada:** por exemplo, `ON v.id_visita = c.id_cliente`, as visitas seriam ligadas a clientes que não são os donos delas (dados incorretos). Se o `ON` fosse omitido, o resultado seria um produto cartesiano, combinando cada visita com todos os clientes.
 
 ---
 
@@ -334,16 +387,25 @@ Explique:
 **Consulta executada:**
 
 ```sql
--- Cole aqui.
+-- INNER JOIN 1 (visitas + clientes)
+SELECT
+    v.id_visita,
+    c.nome AS cliente,
+    v.data_visita,
+    v.status AS status_visita
+FROM visitas AS v
+INNER JOIN clientes AS c
+    ON v.id_cliente = c.id_cliente
+ORDER BY v.data_visita ASC;
 ```
 
 **Resultado esperado:**
 
-> Escreva aqui.
+> 5 linhas (visitas 1 a 5, ordenadas por data), cada uma com o nome do cliente. Larissa Montenegro não aparece, pois a visita dela foi removida na Sprint 3 do Module-1.
 
 **Resultado obtido:**
 
-> Escreva aqui.
+> *(preencher após executar no MySQL Workbench)*
 
 ---
 
@@ -359,104 +421,40 @@ Explique:
 
 # 17. Uso de LLMs
 
-LLMs podem ser utilizadas como apoio, mas todo código deverá ser:
-
-```text
-COMPREENDIDO
-→ ADAPTADO
-→ EXECUTADO
-→ TESTADO
-→ VALIDADO
-```
-
-O aluno deverá ser capaz de explicar presencialmente qualquer consulta entregue.
+Foi utilizada uma LLM como apoio para estruturar as consultas. O código foi revisado, executado no MySQL Workbench e validado, e consigo explicar presencialmente qualquer consulta entregue.
 
 ---
 
-# 18. Estrutura recomendada do SPRINT1-5.sql
+# 18. Checklist
 
-```sql
--- MODULE 2 — SPRINT 1/5
--- JOINS E CONSULTAS RELACIONAIS
-
--- Aluno:
--- Banco:
-
-USE nome_do_banco;
-
--- INNER JOIN 1
-
--- INNER JOIN 2
-
--- LEFT JOIN
-
--- RIGHT JOIN
-
--- JOIN COM 3+ TABELAS 1
-
--- JOIN COM 3+ TABELAS 2
-
--- JOIN + WHERE
-
--- JOIN + ORDER BY
-
--- JOIN + GROUP BY + AGREGAÇÃO
-```
-
----
-
-# 19. Checklist
-
-- [ ] utilizei o mesmo banco do Module-1;
-- [ ] identifiquei PKs e FKs;
-- [ ] produzi 2 `INNER JOIN`;
-- [ ] produzi 1 `LEFT JOIN`;
-- [ ] produzi 1 `RIGHT JOIN`;
-- [ ] produzi consultas com 3 ou mais tabelas;
-- [ ] utilizei `WHERE`;
-- [ ] utilizei `ORDER BY`;
-- [ ] utilizei agregação e `GROUP BY`;
-- [ ] as consultas respondem perguntas reais;
+- [x] utilizei o mesmo banco do Module-1;
+- [x] identifiquei PKs e FKs;
+- [x] produzi 2 `INNER JOIN`;
+- [x] produzi 1 `LEFT JOIN`;
+- [x] produzi 1 `RIGHT JOIN`;
+- [x] produzi consultas com 3 ou mais tabelas;
+- [x] utilizei `WHERE`;
+- [x] utilizei `ORDER BY`;
+- [x] utilizei agregação e `GROUP BY`;
+- [x] as consultas respondem perguntas reais;
 - [ ] testei tudo no MySQL Workbench;
 - [ ] consigo explicar as consultas;
-- [ ] salvei `SPRINT1-5.md`;
-- [ ] salvei `SPRINT1-5.sql`.
+- [x] salvei `SPRINT1-5.md`;
+- [x] salvei `SPRINT1-5.sql`.
 
 ---
 
-# 20. Git/GitHub
-
-Continue utilizando:
-
-```text
-team-XX
-```
-
-Arquivos do commit:
+# 19. Git/GitHub
 
 ```text
 Module-2/SPRINT1-5.md
 Module-2/SPRINT1-5.sql
 ```
 
-Mensagem sugerida:
+Mensagem de commit:
 
 ```text
 Conclui Module 2 Sprint 1 de 5 - JOINs
 ```
 
-**Não abra o Pull Request final nesta Sprint.**
-
----
-
-# Próxima etapa
-
-Na Sprint 2/5 serão trabalhadas subconsultas:
-
-```sql
-IN
-NOT IN
-EXISTS
-NOT EXISTS
-subconsultas correlacionadas
-```
+Pull Request final não aberto nesta Sprint.
