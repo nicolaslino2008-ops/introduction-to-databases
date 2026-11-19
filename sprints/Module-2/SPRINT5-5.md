@@ -38,12 +38,12 @@ ROLLBACK
 
 **Nome completo:**
 
-> Escreva aqui.
+> NICOLAS LINO OLIVEIRA
 
 **Banco utilizado:**
 
 ```text
-
+banco_imobiliaria
 ```
 
 ---
@@ -52,32 +52,21 @@ ROLLBACK
 
 | Sprint | Conteúdo | Concluído? |
 |---|---|---|
-| 1/5 | JOINs |  |
-| 2/5 | Subconsultas |  |
-| 3/5 | Views |  |
-| 4/5 | Procedures e Functions |  |
-| 5/5 | Triggers e Transações |  |
+| 1/5 | JOINs | Sim |
+| 2/5 | Subconsultas | Sim |
+| 3/5 | Views | Sim |
+| 4/5 | Procedures e Functions | Sim |
+| 5/5 | Triggers e Transações | Sim |
 
 ---
 
 # 3. Planejando um TRIGGER
 
-O Trigger deverá representar uma regra ou automação coerente com o domínio.
-
-Exemplos possíveis:
-
-```text
-registrar histórico após alteração
-atualizar estoque
-impedir valor inválido
-registrar auditoria
-atualizar status automaticamente
-registrar data de modificação
-```
-
 **Regra escolhida:**
 
-> Escreva aqui.
+> Foram criados dois Triggers:
+> 1. **Validação:** uma proposta não pode ter valor menor ou igual a zero (regra de negócio 4 da Sprint 1 do Module 1). O banco bloqueia o `INSERT` inválido, mesmo que ele não venha da Procedure.
+> 2. **Automação:** quando um contrato é fechado, o status do imóvel é atualizado sozinho para 'vendido' (venda) ou 'alugado' (aluguel). Isso apoia a regra de negócio 1: um imóvel não pode ficar 'vendido' sem contrato associado.
 
 **Evento:**
 
@@ -87,520 +76,115 @@ registrar data de modificação
 - [ ] AFTER UPDATE
 - [ ] Outro
 
+> Trigger 1: **BEFORE INSERT**. Trigger 2: **AFTER INSERT**.
+
 **Tabela envolvida:**
 
 ```text
-
+Trigger 1: propostas
+Trigger 2: contratos (atualiza imoveis)
 ```
 
 ---
 
 # 4. Implementação do TRIGGER
 
-Estrutura geral:
+**SQL do seu Trigger:**
 
 ```sql
 DELIMITER //
 
-CREATE TRIGGER nome_trigger
-BEFORE INSERT ON nome_tabela
+CREATE TRIGGER tg_proposta_valida_valor
+BEFORE INSERT ON propostas
 FOR EACH ROW
 BEGIN
-    -- lógica
+    IF NEW.valor_proposto <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Valor da proposta deve ser maior que zero.';
+    END IF;
+END //
+
+CREATE TRIGGER tg_contrato_atualiza_status_imovel
+AFTER INSERT ON contratos
+FOR EACH ROW
+BEGIN
+    IF NEW.tipo = 'venda' THEN
+        UPDATE imoveis
+        SET status = 'vendido'
+        WHERE id_imovel = NEW.id_imovel;
+    ELSEIF NEW.tipo = 'aluguel' THEN
+        UPDATE imoveis
+        SET status = 'alugado'
+        WHERE id_imovel = NEW.id_imovel;
+    END IF;
 END //
 
 DELIMITER ;
 ```
 
-**SQL do seu Trigger:**
-
-```sql
--- Cole aqui.
-```
-
 **Explique linha por linha:**
 
-> Escreva aqui.
+> **Trigger 1 (`tg_proposta_valida_valor`)**
+> - `BEFORE INSERT ON propostas`: executa antes de cada nova proposta ser gravada.
+> - `FOR EACH ROW`: roda uma vez para cada linha inserida.
+> - `NEW.valor_proposto`: `NEW` representa a linha que está sendo inserida.
+> - `IF NEW.valor_proposto <= 0`: verifica a regra de negócio.
+> - `SIGNAL SQLSTATE '45000'`: gera um erro definido pelo usuário, que cancela o `INSERT`, com a mensagem do `MESSAGE_TEXT`.
+>
+> **Trigger 2 (`tg_contrato_atualiza_status_imovel`)**
+> - `AFTER INSERT ON contratos`: executa depois que o contrato foi gravado com sucesso.
+> - `NEW.tipo` e `NEW.id_imovel`: leem o tipo e o imóvel do contrato recém-inserido.
+> - `IF` / `ELSEIF`: se for 'venda', o imóvel vira 'vendido'; se for 'aluguel', vira 'alugado'.
+> - `UPDATE imoveis ... WHERE id_imovel = NEW.id_imovel`: altera somente o imóvel do contrato.
+> - `DELIMITER //`: necessário porque o corpo do Trigger tem vários `;`.
 
 ---
 
 # 5. Testando o Trigger
 
+## Trigger 1: validação
+
 **Estado antes do teste:**
 
 ```sql
--- SELECT utilizado.
+SELECT * FROM propostas WHERE id_cliente = 6;
 ```
 
 **Operação executada:**
 
 ```sql
--- INSERT ou UPDATE utilizado.
+START TRANSACTION;
+CALL sp_registrar_proposta(6, 4, 300000.00);
+SELECT * FROM propostas WHERE id_cliente = 6;
+ROLLBACK;
 ```
 
 **Estado depois do teste:**
 
 ```sql
--- SELECT utilizado.
+SELECT * FROM propostas WHERE id_cliente = 6;
 ```
 
 **Resultado observado:**
 
-> Escreva aqui.
+> Esperado: antes, a consulta retorna vazio (a cliente 6 não tem proposta). Com valor válido (R$ 300.000,00), o Trigger deixa passar e a proposta aparece dentro da transação. O `ROLLBACK` desfaz, e a consulta final volta a ficar vazia. Com valor inválido (`-500.00`), o `INSERT` é bloqueado com o erro 1644 e a mensagem "Valor da proposta deve ser maior que zero." (esse teste ficou comentado no `.sql`, pois interrompe o script). *(confirmar no Workbench)*
 
----
+## Trigger 2: atualização automática do status
 
-# 6. START TRANSACTION
-
-Uma transação permite tratar um conjunto de operações como uma unidade.
-
-Estrutura:
+**Estado antes do teste:**
 
 ```sql
-START TRANSACTION;
-
--- operação 1
--- operação 2
-
-COMMIT;
+SELECT id_imovel, status FROM imoveis WHERE id_imovel = 2;
 ```
 
----
-
-# 7. Teste com COMMIT
-
-Crie uma transação coerente com o domínio.
-
-**Objetivo:**
-
-> Escreva aqui.
+**Operação executada:**
 
 ```sql
-START TRANSACTION;
-
--- operações
-
-COMMIT;
+INSERT INTO contratos (id_imovel, id_cliente, id_corretor, valor_final, tipo, data_fechamento)
+VALUES (2, 3, 2, 750000.00, 'venda', CURDATE());
 ```
 
-**O que aconteceu após o COMMIT?**
-
-> Escreva aqui.
-
----
-
-# 8. Teste com ROLLBACK
-
-Execute uma transação que será desfeita.
+**Estado depois do teste:**
 
 ```sql
-START TRANSACTION;
-
--- operações
-
-ROLLBACK;
-```
-
-**Verificação antes:**
-
-```sql
--- SELECT
-```
-
-**Verificação depois:**
-
-```sql
--- SELECT
-```
-
-**O que o ROLLBACK fez?**
-
-> Escreva aqui.
-
----
-
-# 9. Comparação COMMIT x ROLLBACK
-
-## COMMIT
-
-> Explique com suas palavras.
-
-## ROLLBACK
-
-> Explique com suas palavras.
-
-## Por que transações são importantes?
-
-> Escreva aqui.
-
----
-
-# 10. Integração do Module-2
-
-O `SPRINT5-5.sql` deverá integrar os principais conteúdos do módulo.
-
-Estrutura esperada:
-
-```text
-1. USE banco
-2. consultas com JOIN
-3. subconsultas
-4. Views
-5. Procedures
-6. Function
-7. Trigger
-8. teste de COMMIT
-9. teste de ROLLBACK
-10. consultas de validação
-```
-
-> Não é necessário duplicar todo o código do `Module-1`. O objetivo deste arquivo é integrar o que foi desenvolvido no `Module-2` utilizando o banco já existente.
-
----
-
-# 11. Consulta relacional final
-
-**Pergunta:**
-
-> Escreva aqui.
-
-```sql
--- Cole aqui.
-```
-
-**Explique:**
-
-> Escreva aqui.
-
----
-
-# 12. Subconsulta final
-
-**Pergunta:**
-
-> Escreva aqui.
-
-```sql
--- Cole aqui.
-```
-
-**Explique:**
-
-> Escreva aqui.
-
----
-
-# 13. VIEW final mais útil
-
-**Nome:**
-
-```text
-
-```
-
-**Por que é importante?**
-
-> Escreva aqui.
-
----
-
-# 14. Procedure final mais útil
-
-**Nome:**
-
-```text
-
-```
-
-**Entrada:**
-
-```text
-
-```
-
-**Resultado:**
-
-> Escreva aqui.
-
----
-
-# 15. Function final
-
-**Nome:**
-
-```text
-
-```
-
-**O que retorna?**
-
-> Escreva aqui.
-
----
-
-# 16. Trigger final
-
-**Nome:**
-
-```text
-
-```
-
-**Regra automatizada:**
-
-> Escreva aqui.
-
----
-
-# 17. Teste operacional final
-
-O aluno deverá executar o projeto no MySQL Workbench e verificar:
-
-- [ ] JOINs funcionam;
-- [ ] subconsultas funcionam;
-- [ ] Views funcionam;
-- [ ] Procedures funcionam;
-- [ ] Function funciona;
-- [ ] Trigger funciona;
-- [ ] COMMIT funciona;
-- [ ] ROLLBACK funciona.
-
----
-
-# 18. Validação prática/oral
-
-O código do aluno poderá ser selecionado pelo professor para:
-
-```text
-EXECUTAR
-EXPLICAR
-ALTERAR
-TESTAR
-CORRIGIR
-```
-
-O aluno deverá ser capaz de:
-
-1. explicar uma consulta escolhida pelo professor;
-2. alterar um filtro;
-3. trocar um parâmetro de uma Procedure;
-4. explicar uma View;
-5. executar o Trigger;
-6. demonstrar `COMMIT` ou `ROLLBACK`;
-7. interpretar mensagens de erro.
-
----
-
-# 19. Problemas encontrados
-
-| Problema | Causa | Solução |
-|---|---|---|
-|  |  |  |
-|  |  |  |
-|  |  |  |
-
----
-
-# 20. Autoavaliação
-
-**Conteúdo que compreendi melhor:**
-
-> Escreva aqui.
-
-**Conteúdo mais difícil:**
-
-> Escreva aqui.
-
-**Código do Module-2 que considero mais importante:**
-
-> Escreva aqui.
-
-**O que eu conseguiria explicar presencialmente sem consultar material?**
-
-> Escreva aqui.
-
----
-
-# 21. Estrutura recomendada do SPRINT5-5.sql
-
-```sql
--- MODULE 2 — SPRINT 5/5
--- INTEGRAÇÃO FINAL
-
--- Aluno:
--- Banco:
-
-USE nome_do_banco;
-
--- JOINS
-
--- SUBCONSULTAS
-
--- VIEWS
-
--- PROCEDURES E FUNCTIONS
-
--- TRIGGER
-
--- TRANSAÇÃO COM COMMIT
-
--- TRANSAÇÃO COM ROLLBACK
-
--- VALIDAÇÃO FINAL
-```
-
----
-
-# 22. Arquivos esperados no Module-2
-
-Ao final:
-
-```text
-Module-2/
-├── SPRINT1-5.md
-├── SPRINT1-5.sql
-├── SPRINT2-5.md
-├── SPRINT2-5.sql
-├── SPRINT3-5.md
-├── SPRINT3-5.sql
-├── SPRINT4-5.md
-├── SPRINT4-5.sql
-├── SPRINT5-5.md
-└── SPRINT5-5.sql
-```
-
-Total esperado:
-
-```text
-10 arquivos
-```
-
----
-
-# 23. Checklist final
-
-- [ ] mantive os arquivos do Module-1;
-- [ ] utilizei a mesma branch `team-XX`;
-- [ ] concluí as cinco Sprints do Module-2;
-- [ ] todos os `.md` estão preenchidos;
-- [ ] todos os `.sql` foram testados;
-- [ ] JOINs funcionam;
-- [ ] subconsultas funcionam;
-- [ ] Views funcionam;
-- [ ] Procedures funcionam;
-- [ ] Function funciona;
-- [ ] Trigger funciona;
-- [ ] COMMIT e ROLLBACK foram demonstrados;
-- [ ] compreendo o código entregue;
-- [ ] revisei os nomes dos arquivos;
-- [ ] nenhum arquivo foi colocado fora de `Module-2`.
-
----
-
-# 24. Commit da Sprint 5/5
-
-Mensagem sugerida:
-
-```text
-Conclui Module 2 Sprint 5 de 5 - triggers e transacoes
-```
-
----
-
-# 25. Pull Request final do Module-2
-
-Depois da Sprint 5/5, abra o Pull Request.
-
-Origem:
-
-```text
-team-XX
-```
-
-Destino:
-
-```text
-main
-```
-
-Título — UNEMAT:
-
-```text
-[N2][UNEMAT][Team XX] Sprints 1-5 - Nome do Banco
-```
-
-Título — UFR:
-
-```text
-[N2][UFR][Team XX] Sprints 1-5 - Nome do Banco
-```
-
----
-
-# 26. Descrição sugerida do Pull Request
-
-```text
-## Identificação
-
-Aluno: NOME COMPLETO
-Instituição: UNEMAT ou UFR
-Branch: team-XX
-Banco: NOME DO BANCO
-Módulo: 2
-
-## Arquivos entregues
-
-- Module-2/SPRINT1-5.md
-- Module-2/SPRINT1-5.sql
-- Module-2/SPRINT2-5.md
-- Module-2/SPRINT2-5.sql
-- Module-2/SPRINT3-5.md
-- Module-2/SPRINT3-5.sql
-- Module-2/SPRINT4-5.md
-- Module-2/SPRINT4-5.sql
-- Module-2/SPRINT5-5.md
-- Module-2/SPRINT5-5.sql
-
-## Validação
-
-- [x] JOINs testados
-- [x] Subconsultas testadas
-- [x] Views testadas
-- [x] Procedures testadas
-- [x] Function testada
-- [x] Trigger testado
-- [x] COMMIT testado
-- [x] ROLLBACK testado
-```
-
----
-
-# 27. Uso de LLMs
-
-LLMs podem ser utilizadas como ferramenta de apoio.
-
-Todo código deverá ser:
-
-```text
-COMPREENDIDO
-→ ADAPTADO
-→ EXECUTADO
-→ TESTADO
-→ VALIDADO
-```
-
-O aluno poderá ser chamado presencialmente para demonstrar qualquer parte entregue.
-
----
-
-# Critério de conclusão do Module-2
-
-O Module-2 será considerado concluído quando o aluno:
-
-1. entregar as cinco Sprints;
-2. possuir os 10 arquivos exigidos;
-3. demonstrar evolução em relação ao Module-1;
-4. executar os scripts no MySQL Workbench;
-5. compreender o código entregue;
-6. abrir o Pull Request final;
-7. corrigir eventuais falhas apontadas pela validação automática.
+SELECT
